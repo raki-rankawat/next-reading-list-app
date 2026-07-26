@@ -42,6 +42,14 @@ Bring `README.md` up to date with the work that landed since it was last updated
    | 01 | json-server Setup | ⬜ Not started |
    ...
 
+   ## Roadmap
+
+   <mermaid dependency graph — see Diagrams below>
+
+   ## Architecture
+
+   <mermaid data-flow graph — see Diagrams below>
+
    ## Getting Started
 
    <the real commands, both processes — see CLAUDE.md>
@@ -49,6 +57,10 @@ Bring `README.md` up to date with the work that landed since it was last updated
    ## Tech Stack
 
    ## Project Structure
+
+   ## Development Workflow
+
+   <mermaid workflow graph — see Diagrams below>
 
    ## Build Log
 
@@ -66,7 +78,15 @@ Bring `README.md` up to date with the work that landed since it was last updated
    - Omit the **Fixes** line entirely when nothing broke — do not pad it with "None".
    - Keep entries short. Three to six lines per feature, not a diff transcript.
 
-5. **Commit** - Show the user what changed, then invoke `/commit-msg` to commit it (`docs:` type). Ask before committing, per `context/ai-interaction.md`.
+5. **Refresh the diagrams** - The README carries three Mermaid diagrams (GitHub renders them natively, so no images or external tooling). Update them as part of every run:
+
+   - **Roadmap** — a `flowchart TD` of the feature specs. Edges come from each spec's **Depends On** section, never from the numbering: some features are only *sequenced* after others without depending on them, and those edges must be dotted and labelled as such. Completed features get the `done` class (green), the rest `todo` (grey). This doubles as the progress chart, so recolouring the node of the feature that just landed is the main edit each run.
+   - **Architecture** — a `flowchart LR` of browser → Next.js → json-server, plus the Open Library calls. Only changes when the data flow actually changes.
+   - **Development Workflow** — a `flowchart LR` of the `implement-feature` loop. Keep the step numbering in sync with that skill; steps needing explicit approval carry the `gate` class (amber).
+
+   Quote every node label (`F00["00 · Project Init"]`) so punctuation doesn't break the parse, and re-read the diagram after editing to confirm each node id still resolves.
+
+6. **Commit** - Show the user what changed, then invoke `/commit-msg` to commit it (`docs:` type). Ask before committing, per `context/ai-interaction.md`.
 
 ## Rules
 
@@ -74,3 +94,4 @@ Bring `README.md` up to date with the work that landed since it was last updated
 - Never describe a fix that isn't evidenced in the commits or `current-feature.md`.
 - Keep the Getting Started commands in sync with `CLAUDE.md` — both `npm run dev` and the separate `json-server` process, since there is no bundled backend.
 - Don't reintroduce `create-next-app` boilerplate text once it has been removed.
+- A diagram that contradicts the Status table is worse than no diagram — the table, the roadmap colours, and the "N of 9 complete" line must always agree.
