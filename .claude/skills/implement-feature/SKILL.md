@@ -35,7 +35,9 @@ You are implementing a single feature end-to-end, following the standing workflo
 
 9. **Review** - Do a quick self-review of the code for logic errors, unnecessary complexity, and consistency with existing patterns.
 
-10. **Close out** - Update @context/current-feature.md: set Status to "Completed", clear the Goals/Notes content, and append a one-line summary of what was built to the History section.
+10. **Update README** - Invoke `/update-readme` to refresh the progress table and append a build-log entry for this feature. It derives the entry from the commits since the README was last touched, so run it after the merge, not before.
+
+11. **Close out** - Update @context/current-feature.md: set Status to "Completed", clear the Goals/Notes content, and append a one-line summary of what was built to the History section.
 
 ## Rules
 
