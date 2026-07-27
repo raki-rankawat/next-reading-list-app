@@ -1,12 +1,26 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
+import BookDrawer from "@/components/books/BookDrawer";
 import BookTable from "@/components/books/BookTable";
 import { useBooks } from "@/hooks/useBooks";
 
 export default function ReadingList() {
   const { books, isLoading, error } = useBooks();
+  // Which book the drawer shows and whether it is open are separate: the
+  // selection outlives the close so the panel still has content to render while
+  // it slides out. Tracking the id rather than the book itself keeps the drawer
+  // on live data once features 04 and 05 start mutating the list.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const selectedBook = books.find((book) => book.id === selectedId) ?? null;
+
+  function openBook(id: string) {
+    setSelectedId(id);
+    setIsDrawerOpen(true);
+  }
 
   let body: ReactNode;
   if (isLoading) {
@@ -16,7 +30,7 @@ export default function ReadingList() {
   } else if (books.length === 0) {
     body = <EmptyState />;
   } else {
-    body = <BookTable books={books} />;
+    body = <BookTable books={books} onSelect={openBook} />;
   }
 
   return (
@@ -32,6 +46,11 @@ export default function ReadingList() {
         )}
       </header>
       {body}
+      <BookDrawer
+        book={selectedBook}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+      />
     </>
   );
 }

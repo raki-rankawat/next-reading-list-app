@@ -123,8 +123,14 @@ A working prototype exists in Claude Design at:
 
 Key file: `Reading List.dc.html` (also reads `support.js`)
 
-This is a design reference, not implementation code — use it for layout, spacing, and visual details when building the matching UI. The actual import command belongs in the relevant feature file (e.g. the home table or drawer feature), not here, since it's a one-time action tied to building that specific screen. Requires the Claude Design MCP server registered in Claude Code:
+This is the source of truth for every UI feature. Match it strictly — layout, element order, sizes, colours, and motion — and **read it before building the component, not after**. Do not approximate a screen from already-built components. It is a design reference rather than implementation code, so translate its inline styles into Tailwind per `coding-standards.md`, but do not restructure what it lays out.
+
+Deviate only where a feature spec explicitly overrides it (typically a control that belongs to a later feature), and record each deviation in `context/current-feature.md`.
+
+Reading it requires the Claude Design MCP server registered in Claude Code:
 `claude mcp add --scope user --transport http claude-design https://api.anthropic.com/v1/design/mcp`
+
+A newly registered server's tools only load on the next session. If the import tools are missing, the `DesignSync` read methods reach the same project without them — `list_files`, then `get_file` with `projectId: "529c3d37-dc74-4ef9-8d5a-e758ce3e5835"`.
 
 ### Layout Structure
 
