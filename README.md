@@ -4,13 +4,13 @@ A personal book reading list tracker — track books you've read, are currently 
 
 ## Status
 
-**2 of 9 features complete.**
+**3 of 9 features complete.**
 
 | #   | Feature                                 | Status         |
 | --- | --------------------------------------- | -------------- |
 | 00  | Project Init & Boilerplate Cleanup      | ✅ Done        |
 | 01  | Project & json-server Setup             | ✅ Done        |
-| 02  | Home Page — Read-Only Table             | ⬜ Not started |
+| 02  | Home Page — Read-Only Table             | ✅ Done        |
 | 03  | Book Detail Drawer — View Only          | ⬜ Not started |
 | 04  | Status Editing (Drawer)                 | ⬜ Not started |
 | 05  | Delete Flow (Drawer)                    | ⬜ Not started |
@@ -40,8 +40,8 @@ flowchart TD
 
     classDef done fill:#22c55e,stroke:#15803d,color:#052e16
     classDef todo fill:#f1f5f9,stroke:#94a3b8,color:#334155
-    class F00,F01 done
-    class F02,F03,F04,F05,F06,F07,F08 todo
+    class F00,F01,F02 done
+    class F03,F04,F05,F06,F07,F08 todo
 ```
 
 ## Architecture
@@ -105,6 +105,10 @@ Stop json-server before running `db:reset`: a running server keeps serving its i
 
 ```
 src/app/           # App Router pages and layout
+src/components/    # UI components, grouped by feature area
+src/hooks/         # Client hooks — useBooks wraps the json-server fetch
+src/lib/           # json-server.ts — typed fetch helpers
+src/types/         # book.ts — Book and BookStatus
 context/           # Project docs and numbered feature specs
 scripts/           # reset-db.js — rebuilds db.json from the seed
 .claude/skills/    # Workflow skills
@@ -157,3 +161,11 @@ Amber steps need explicit approval before they run.
 **Decisions** — Seed data uses real Open Library keys and cover ids pulled from `search.json`, so covers actually resolve when feature 02 renders them. `json-server` stayed on `1.0.0-beta.15` rather than pinning stable `0.17.x`: v1 generates string ids, matching the `"id": "1"` shape the schema already specified. `dev` delegates through `concurrently`'s `npm:` shorthand so `dev:api` is defined in one place.
 
 **Fixes** — The documented `json-server --watch db.json --port 3001` was v0.17 syntax and fails on v1, which dropped `--watch`; corrected in `CLAUDE.md` and the spec. The `olKey` example in `project-overview.md` showed a bare `OL66554W` while the search API returns `/works/OL66554W`, and both `coding-standards.md` and feature 07 specify comparing that `key` against `olKey` directly — seeding the bare form would have made every "Already Added" check miss and allow duplicates, so the example now carries the prefix. Verifying `db:reset` surfaced that a running json-server ignores an externally overwritten file and keeps serving stale data; it needs a restart, now documented.
+
+### 02 — Home Page: Read-Only Table
+
+`6fefb8c` · merged in `8c791e1`
+
+**Shipped** — `Book` / `BookStatus` types, a `getBooks` helper in `src/lib/json-server.ts`, a `useBooks` hook, the `StatusBadge` and `StarScore` primitives, and `BookTable`. The home page renders all six seeded books across Name / Type / Status / Score / Author / Link, with distinct loading, empty, and error states.
+
+**Decisions** — Status colours became six `@theme` tokens rather than the three in `project-overview.md`. The design reference draws each status as a pale tint under dark text of the same hue, and a single hex cannot fill both roles above ~2.3:1 contrast, so every status gained a darker `-ink` companion. `STATUS_STYLES` holds the display label next to the classes, keeping `currently_reading` → "Currently Reading" in one place for feature 04's dropdown. Data loads client-side via `useBooks`, not in a server component — that is what makes a genuine loading state possible and what features 04 and 05 need for mutations, leaving `page.tsx` as the only server component. The design's Add Book button and pagination row were omitted as they would be dead controls until features 06-07. An error state was added beyond the spec's requirements, since `coding-standards.md` forbids letting a failed fetch render nothing; it is what surfaces "is json-server running on port 3001". The `useBooks` hook sits in a new `src/hooks/` folder, which the File Organization list in `coding-standards.md` does not yet mention.
