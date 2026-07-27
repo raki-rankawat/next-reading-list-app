@@ -1,7 +1,11 @@
+import ReadingList from "@/components/books/ReadingList";
+
 export default function Home() {
   return (
-    <main className="flex flex-1 items-center justify-center p-8">
-      <h1 className="text-3xl font-semibold tracking-tight">Reading List</h1>
+    <main className="flex-1 bg-stone-50">
+      <div className="mx-auto max-w-[1100px] px-8 pt-14 pb-20">
+        <ReadingList />
+      </div>
     </main>
   );
 }

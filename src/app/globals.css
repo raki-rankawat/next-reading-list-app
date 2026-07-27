@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+@theme {
+  /* Status colours. The base hue of each is the one documented in
+     context/project-overview.md; the -ink companion is a darker shade of the
+     same hue, used for badge text so a pill stays readable on its own tint. */
+  --color-status-read: #22c55e;
+  --color-status-read-ink: #14532d;
+  --color-status-currently-reading: #f97316;
+  --color-status-currently-reading-ink: #7c2d12;
+  --color-status-want-to-read: #3b82f6;
+  --color-status-want-to-read-ink: #1e3a8a;
+}
