@@ -73,11 +73,13 @@ Adding a book POSTs it to json-server with a default status of `want_to_read` an
       "score": 3,
       "coverUrl": "https://covers.openlibrary.org/b/id/12345-M.jpg",
       "link": "https://openlibrary.org/works/OL...",
-      "olKey": "OL66554W"
+      "olKey": "/works/OL66554W"
     }
   ]
 }
 ```
+
+`olKey` stores Open Library's `key` field verbatim, including the `/works/` prefix — that is the exact string the search API returns. Feature 7 compares a search result's `key` against `olKey` directly, so storing it in any other shape would require normalizing on both sides.
 
 `status` must be exactly one of: `"read"`, `"currently_reading"`, `"want_to_read"`.
 

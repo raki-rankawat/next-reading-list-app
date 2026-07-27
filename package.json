@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "concurrently -n next,api -c cyan,magenta \"npm:dev:next\" \"npm:dev:api\"",
+    "dev:next": "next dev",
+    "dev:api": "json-server db.json --port 3001",
+    "db:reset": "node scripts/reset-db.js",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -18,8 +21,10 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "json-server": "^1.0.0-beta.15",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
