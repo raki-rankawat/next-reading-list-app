@@ -15,13 +15,13 @@ Get the base Next.js/TypeScript/Tailwind project running alongside a seeded json
 - Create `scripts/reset-db.js`, which copies `db.seed.json` over `db.json`
 - Add a `db:reset` script to `package.json` running `node scripts/reset-db.js`
 - Run `db:reset` once to generate the initial `db.json` (the working file json-server actually reads/writes — add it to `.gitignore`, since it's disposable test state, not source of truth)
-- Install `json-server` and `concurrently` as devDependencies
+- Install `json-server` and `concurrently` as devDependencies (json-server v1 CLI is `json-server <file> --port`; the old `--watch` flag no longer exists, watching is the default)
 - Add scripts to `package.json`: `dev` (runs Next.js + json-server together via `concurrently`), `dev:next` and `dev:api` (each in isolation, for debugging)
 - Confirm `GET`, `POST`, `PATCH`, `DELETE` all work against `http://localhost:3001/books` via curl or Postman — before writing any frontend code
 
 ## Acceptance Criteria
 
-- `npm run db:reset` restores `db.json` to the original 6 seeded books, discarding any edits/deletes made during testing
+- `npm run db:reset` restores `db.json` to the original 6 seeded books, discarding any edits/deletes made during testing (json-server must be restarted afterwards — it does not reload an externally overwritten file)
 - `db.json` is gitignored; `db.seed.json` is committed
 - `npm run dev` starts both Next.js (:3000) and json-server (:3001) together, in one command
 - `npm run dev:next` and `npm run dev:api` each work in isolation

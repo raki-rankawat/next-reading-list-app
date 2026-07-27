@@ -1,0 +1,70 @@
+{
+  "books": [
+    {
+      "id": "1",
+      "title": "Pride and Prejudice",
+      "author": "Jane Austen",
+      "type": "Fiction",
+      "status": "read",
+      "score": 4,
+      "coverUrl": "https://covers.openlibrary.org/b/id/14348537-M.jpg",
+      "link": "https://openlibrary.org/works/OL66554W",
+      "olKey": "/works/OL66554W"
+    },
+    {
+      "id": "2",
+      "title": "Nineteen Eighty-Four",
+      "author": "George Orwell",
+      "type": "Fiction",
+      "status": "read",
+      "score": 5,
+      "coverUrl": "https://covers.openlibrary.org/b/id/9267242-M.jpg",
+      "link": "https://openlibrary.org/works/OL1168083W",
+      "olKey": "/works/OL1168083W"
+    },
+    {
+      "id": "3",
+      "title": "The Hobbit",
+      "author": "J.R.R. Tolkien",
+      "type": "Fiction",
+      "status": "currently_reading",
+      "score": 4,
+      "coverUrl": "https://covers.openlibrary.org/b/id/14627509-M.jpg",
+      "link": "https://openlibrary.org/works/OL27482W",
+      "olKey": "/works/OL27482W"
+    },
+    {
+      "id": "4",
+      "title": "Sapiens",
+      "author": "Yuval Noah Harari",
+      "type": "Non-Fiction",
+      "status": "currently_reading",
+      "score": 3,
+      "coverUrl": "https://covers.openlibrary.org/b/id/8634250-M.jpg",
+      "link": "https://openlibrary.org/works/OL17075811W",
+      "olKey": "/works/OL17075811W"
+    },
+    {
+      "id": "5",
+      "title": "The Pragmatic Programmer",
+      "author": "Andy Hunt, David Thomas",
+      "type": "Non-Fiction",
+      "status": "want_to_read",
+      "score": 0,
+      "coverUrl": "https://covers.openlibrary.org/b/id/10143650-M.jpg",
+      "link": "https://openlibrary.org/works/OL5748544W",
+      "olKey": "/works/OL5748544W"
+    },
+    {
+      "id": "6",
+      "title": "The Left Hand of Darkness",
+      "author": "Ursula K. Le Guin",
+      "type": "Fiction",
+      "status": "want_to_read",
+      "score": 0,
+      "coverUrl": "https://covers.openlibrary.org/b/id/10618463-M.jpg",
+      "link": "https://openlibrary.org/works/OL59800W",
+      "olKey": "/works/OL59800W"
+    }
+  ]
+}
