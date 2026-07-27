@@ -13,14 +13,15 @@ Read the following to get the full context of the project:
 
 ## Commands
 
-Two processes run side by side in development — this app has no real backend, `json-server` is standing in for one.
+`npm run dev` runs both the Next.js dev server and json-server together via `concurrently` — no need for two terminals.
 
 ```bash
-npm run dev                                    # Next.js dev server on :3000
-npx json-server --watch db.json --port 3001    # fake REST API on :3001, run in a second terminal
-npm run build                                   # production build
-npm start                                       # serve the production build
-npm run lint                                    # eslint
+npm run dev       # Next.js (:3000) + json-server --watch db.json --port 3001, together
+npm run dev:next  # Next.js only, for isolating a Next.js-specific issue
+npm run dev:api   # json-server only, for isolating a data/API issue
+npm run build      # production build
+npm start          # serve the production build
+npm run lint       # eslint
 ```
 
-Note: `npm start` will serve the Next.js app, but json-server still needs to be running separately for data to load — there is no bundled backend.
+Note: `npm start` serves the built Next.js app only — json-server still needs to be running (`npm run dev:api`) for data to load, since it's not part of the production build.

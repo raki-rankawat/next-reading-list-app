@@ -12,13 +12,14 @@ Get the base Next.js/TypeScript/Tailwind project running alongside a seeded json
 
 - Create `db.json` with a `books` array
 - Seed 5-6 sample books covering all three statuses (`read`, `currently_reading`, `want_to_read`), matching the schema in @context/project-overview.md
-- Install and configure `json-server`, running on port 3001 (`npx json-server --watch db.json --port 3001`)
+- Install `json-server` and `concurrently` as devDependencies
+- Add scripts to `package.json`: `dev` (runs Next.js + json-server together via `concurrently`), `dev:next` and `dev:api` (each in isolation, for debugging)
 - Confirm `GET`, `POST`, `PATCH`, `DELETE` all work against `http://localhost:3001/books` via curl or Postman — before writing any frontend code
 
 ## Acceptance Criteria
 
-- `npm run dev` runs the Next.js app on :3000 with no errors
-- `npx json-server --watch db.json --port 3001` serves the seeded books
+- `npm run dev` starts both Next.js (:3000) and json-server (:3001) together, in one command
+- `npm run dev:next` and `npm run dev:api` each work in isolation
 - All four CRUD operations verified manually against json-server (not through the UI, since there is none yet)
 
 ## Depends On
