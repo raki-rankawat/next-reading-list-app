@@ -19,6 +19,7 @@ Read the following to get the full context of the project:
 npm run dev       # Next.js (:3000) + json-server --watch db.json --port 3001, together
 npm run dev:next  # Next.js only, for isolating a Next.js-specific issue
 npm run dev:api   # json-server only, for isolating a data/API issue
+npm run db:reset   # restore db.json to the 6 seeded books from db.seed.json
 npm run build      # production build
 npm start          # serve the production build
 npm run lint       # eslint
