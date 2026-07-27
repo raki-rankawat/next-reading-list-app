@@ -4,12 +4,12 @@ A personal book reading list tracker — track books you've read, are currently 
 
 ## Status
 
-**1 of 9 features complete.**
+**2 of 9 features complete.**
 
 | #   | Feature                                 | Status         |
 | --- | --------------------------------------- | -------------- |
 | 00  | Project Init & Boilerplate Cleanup      | ✅ Done        |
-| 01  | Project & json-server Setup             | ⬜ Not started |
+| 01  | Project & json-server Setup             | ✅ Done        |
 | 02  | Home Page — Read-Only Table             | ⬜ Not started |
 | 03  | Book Detail Drawer — View Only          | ⬜ Not started |
 | 04  | Status Editing (Drawer)                 | ⬜ Not started |
@@ -40,8 +40,8 @@ flowchart TD
 
     classDef done fill:#22c55e,stroke:#15803d,color:#052e16
     classDef todo fill:#f1f5f9,stroke:#94a3b8,color:#334155
-    class F00 done
-    class F01,F02,F03,F04,F05,F06,F07,F08 todo
+    class F00,F01 done
+    class F02,F03,F04,F05,F06,F07,F08 todo
 ```
 
 ## Architecture
@@ -61,26 +61,34 @@ flowchart LR
 
 ## Getting Started
 
-Two processes run side by side in development.
+Two processes run side by side in development, but `concurrently` starts both from one command — no second terminal needed.
 
 ```bash
-npm run dev                                    # Next.js dev server on :3000
-npx json-server --watch db.json --port 3001    # fake REST API on :3001, second terminal
+npm install
+npm run db:reset   # creates db.json from db.seed.json (first run only)
+npm run dev        # Next.js (:3000) + json-server (:3001), together
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). The API is at [http://localhost:3001/books](http://localhost:3001/books).
 
 Other commands:
 
 ```bash
-npm run build    # production build
-npm start        # serve the production build
-npm run lint     # eslint
+npm run dev:next   # Next.js only, for isolating a Next.js-specific issue
+npm run dev:api    # json-server only, for isolating a data/API issue
+npm run db:reset   # restore db.json to the 6 seeded books
+npm run build      # production build
+npm start          # serve the production build
+npm run lint       # eslint
 ```
 
-`npm start` serves the Next.js app only — json-server still needs to be running separately for data to load.
+`npm start` serves the Next.js app only — json-server still needs to be running (`npm run dev:api`) for data to load.
 
-> `db.json` does not exist yet; it arrives in feature 01.
+### Seed data vs. working data
+
+`db.seed.json` is the committed source of truth. `db.json` is the disposable working copy json-server reads and writes, and is gitignored — `npm run db:reset` recreates it. Change the starting data by editing `db.seed.json`, not `db.json`.
+
+Stop json-server before running `db:reset`: a running server keeps serving its in-memory copy and will not pick up the rewritten file.
 
 ## Tech Stack
 
@@ -98,8 +106,11 @@ npm run lint     # eslint
 ```
 src/app/           # App Router pages and layout
 context/           # Project docs and numbered feature specs
+scripts/           # reset-db.js — rebuilds db.json from the seed
 .claude/skills/    # Workflow skills
 public/            # Static assets
+db.seed.json       # Committed seed data (source of truth)
+db.json            # Working API data, gitignored — regenerate with npm run db:reset
 ```
 
 ## Development Workflow
@@ -136,3 +147,13 @@ Amber steps need explicit approval before they run.
 **Decisions** — The `@/*` path alias was repointed from `./*` to `./src/*` alongside the move, so later imports resolve inside the new tree. Geist fonts were dropped rather than kept: stripping `globals.css` to one line removes the `@theme` block that wired them into Tailwind's `font-sans`, so keeping them would have left dead CSS variables. The unused `next.svg` and `vercel.svg` logos were deleted.
 
 **Notes** — Project docs, feature specs, and the workflow skills landed separately in `cb7ce58` and `2d19382`. Feature 02 will need the three `--color-status-*` custom properties in `globals.css`, which will take it past this feature's "only the Tailwind import" criterion.
+
+### 01 — Project & json-server Setup
+
+`282861f` · `1a91c03` · merged in `37e86c0`
+
+**Shipped** — `db.seed.json` with six books covering all three statuses, `scripts/reset-db.js` and a `db:reset` script that rebuilds `db.json` from it, `json-server` and `concurrently` as devDependencies, and `dev` / `dev:next` / `dev:api` scripts. All four CRUD verbs verified against `http://localhost:3001/books` before any UI work.
+
+**Decisions** — Seed data uses real Open Library keys and cover ids pulled from `search.json`, so covers actually resolve when feature 02 renders them. `json-server` stayed on `1.0.0-beta.15` rather than pinning stable `0.17.x`: v1 generates string ids, matching the `"id": "1"` shape the schema already specified. `dev` delegates through `concurrently`'s `npm:` shorthand so `dev:api` is defined in one place.
+
+**Fixes** — The documented `json-server --watch db.json --port 3001` was v0.17 syntax and fails on v1, which dropped `--watch`; corrected in `CLAUDE.md` and the spec. The `olKey` example in `project-overview.md` showed a bare `OL66554W` while the search API returns `/works/OL66554W`, and both `coding-standards.md` and feature 07 specify comparing that `key` against `olKey` directly — seeding the bare form would have made every "Already Added" check miss and allow duplicates, so the example now carries the prefix. Verifying `db:reset` surfaced that a running json-server ignores an externally overwritten file and keeps serving stale data; it needs a restart, now documented.
