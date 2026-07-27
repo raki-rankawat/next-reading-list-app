@@ -4,14 +4,14 @@ A personal book reading list tracker — track books you've read, are currently 
 
 ## Status
 
-**3 of 9 features complete.**
+**4 of 9 features complete.**
 
 | #   | Feature                                 | Status         |
 | --- | --------------------------------------- | -------------- |
 | 00  | Project Init & Boilerplate Cleanup      | ✅ Done        |
 | 01  | Project & json-server Setup             | ✅ Done        |
 | 02  | Home Page — Read-Only Table             | ✅ Done        |
-| 03  | Book Detail Drawer — View Only          | ⬜ Not started |
+| 03  | Book Detail Drawer — View Only          | ✅ Done        |
 | 04  | Status Editing (Drawer)                 | ⬜ Not started |
 | 05  | Delete Flow (Drawer)                    | ⬜ Not started |
 | 06  | Search View — Open Library Results      | ⬜ Not started |
@@ -40,8 +40,8 @@ flowchart TD
 
     classDef done fill:#22c55e,stroke:#15803d,color:#052e16
     classDef todo fill:#f1f5f9,stroke:#94a3b8,color:#334155
-    class F00,F01,F02 done
-    class F03,F04,F05,F06,F07,F08 todo
+    class F00,F01,F02,F03 done
+    class F04,F05,F06,F07,F08 todo
 ```
 
 ## Architecture
@@ -169,3 +169,13 @@ Amber steps need explicit approval before they run.
 **Shipped** — `Book` / `BookStatus` types, a `getBooks` helper in `src/lib/json-server.ts`, a `useBooks` hook, the `StatusBadge` and `StarScore` primitives, and `BookTable`. The home page renders all six seeded books across Name / Type / Status / Score / Author / Link, with distinct loading, empty, and error states.
 
 **Decisions** — Status colours became six `@theme` tokens rather than the three in `project-overview.md`. The design reference draws each status as a pale tint under dark text of the same hue, and a single hex cannot fill both roles above ~2.3:1 contrast, so every status gained a darker `-ink` companion. `STATUS_STYLES` holds the display label next to the classes, keeping `currently_reading` → "Currently Reading" in one place for feature 04's dropdown. Data loads client-side via `useBooks`, not in a server component — that is what makes a genuine loading state possible and what features 04 and 05 need for mutations, leaving `page.tsx` as the only server component. The design's Add Book button and pagination row were omitted as they would be dead controls until features 06-07. An error state was added beyond the spec's requirements, since `coding-standards.md` forbids letting a failed fetch render nothing; it is what surfaces "is json-server running on port 3001". The `useBooks` hook sits in a new `src/hooks/` folder, which the File Organization list in `coding-standards.md` does not yet mention.
+
+### 03 — Book Detail Drawer: View Only
+
+`fba1045` · merged in `d834ba8`
+
+**Shipped** — `BookDrawer`, a panel that slides in when a table row is clicked, showing the cover, title, type, author, link, score, and a static status badge. It closes via the bare `×` or the backdrop, fills the viewport below 768px, and sits as a 400px right-hand panel above that. `StarScore` gained a `size` prop for the design's two star sizes (14px in the table, 17px in the drawer), and `covers.openlibrary.org` is allow-listed in `next.config.ts` so `next/image` can serve covers.
+
+**Decisions** — The selected book id and the drawer's open state are tracked separately in `ReadingList`: closing clears only `isDrawerOpen`, so the panel still has content to render while sliding out, and re-deriving the book with `books.find` each render keeps it on live data for feature 04's status edit. The overlay stays mounted rather than mounting on open, since a panel mounted in its final position has nothing to animate from; `inert` keeps it out of the tab order while closed. Rows carry the click for pointers while the title cell is a real `<button>` for keyboard users, avoiding `role="button"` on a `<tr>`, and the Open Library link stops propagation so it doesn't also open the drawer. The design's status `<select>`, Delete button, and Notes / Added / Finished fields were left out — the first two belong to features 04 and 05, and the last three have no fields in the `Book` model.
+
+**Fixes** — The drawer was first built from feature 02's table styling instead of the design file and diverged structurally: a bordered header rather than the centred cover-and-title stack, the wrong field order, and a 440px panel instead of 400px. It was re-laid out against `Reading List.dc.html` before the commit. The design had looked unreachable because the claude-design MCP server was unregistered, and its import tools only load in the session *after* registration — but the `DesignSync` read methods reach the same project without them. `project-overview.md` had described the file as "a design reference... use it for layout, spacing, and visual details", wording that invited the approximation, and now states it is the strict source of truth to be read before building. Two React Compiler lint rules (`set-state-in-effect` and `refs`) rejected the first two attempts at retaining the closing panel's content, which is what pushed that state up into `ReadingList`.
