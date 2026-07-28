@@ -4,7 +4,7 @@ A personal book reading list tracker — track books you've read, are currently 
 
 ## Status
 
-**4 of 9 features complete.**
+**5 of 9 features complete.**
 
 | #   | Feature                                 | Status         |
 | --- | --------------------------------------- | -------------- |
@@ -12,7 +12,7 @@ A personal book reading list tracker — track books you've read, are currently 
 | 01  | Project & json-server Setup             | ✅ Done        |
 | 02  | Home Page — Read-Only Table             | ✅ Done        |
 | 03  | Book Detail Drawer — View Only          | ✅ Done        |
-| 04  | Status Editing (Drawer)                 | ⬜ Not started |
+| 04  | Status Editing (Drawer)                 | ✅ Done        |
 | 05  | Delete Flow (Drawer)                    | ⬜ Not started |
 | 06  | Search View — Open Library Results      | ⬜ Not started |
 | 07  | Add-to-List + "Already Added" Detection | ⬜ Not started |
@@ -40,8 +40,8 @@ flowchart TD
 
     classDef done fill:#22c55e,stroke:#15803d,color:#052e16
     classDef todo fill:#f1f5f9,stroke:#94a3b8,color:#334155
-    class F00,F01,F02,F03 done
-    class F04,F05,F06,F07,F08 todo
+    class F00,F01,F02,F03,F04 done
+    class F05,F06,F07,F08 todo
 ```
 
 ## Architecture
@@ -179,3 +179,13 @@ Amber steps need explicit approval before they run.
 **Decisions** — The selected book id and the drawer's open state are tracked separately in `ReadingList`: closing clears only `isDrawerOpen`, so the panel still has content to render while sliding out, and re-deriving the book with `books.find` each render keeps it on live data for feature 04's status edit. The overlay stays mounted rather than mounting on open, since a panel mounted in its final position has nothing to animate from; `inert` keeps it out of the tab order while closed. Rows carry the click for pointers while the title cell is a real `<button>` for keyboard users, avoiding `role="button"` on a `<tr>`, and the Open Library link stops propagation so it doesn't also open the drawer. The design's status `<select>`, Delete button, and Notes / Added / Finished fields were left out — the first two belong to features 04 and 05, and the last three have no fields in the `Book` model.
 
 **Fixes** — The drawer was first built from feature 02's table styling instead of the design file and diverged structurally: a bordered header rather than the centred cover-and-title stack, the wrong field order, and a 440px panel instead of 400px. It was re-laid out against `Reading List.dc.html` before the commit. The design had looked unreachable because the claude-design MCP server was unregistered, and its import tools only load in the session *after* registration — but the `DesignSync` read methods reach the same project without them. `project-overview.md` had described the file as "a design reference... use it for layout, spacing, and visual details", wording that invited the approximation, and now states it is the strict source of truth to be read before building. Two React Compiler lint rules (`set-state-in-effect` and `refs`) rejected the first two attempts at retaining the closing panel's content, which is what pushed that state up into `ReadingList`.
+
+### 04 — Status Editing (Drawer)
+
+`76f9a25` · merged in `51a89a1`
+
+**Shipped** — `updateBookStatus` in `src/lib/json-server.ts` (`PATCH /books/:id`), an `updateStatus` mutation on `useBooks`, and `StatusSelect`, which replaces the drawer's static badge. Changing status writes through to `db.json` and the table's badge recolours without a reload. A failed save renders an error under the control. Labels and the option order moved to `src/lib/book-status.ts`, shared with `StatusBadge`.
+
+**Decisions** — `updateStatus` rejects on failure instead of storing the error in the hook: `useBooks`' existing `error` swaps the whole table for an error state, which is right for a failed load and wrong for a failed save, so the drawer catches it and reports it beside the select. Local state is updated from the book json-server returns rather than from what was sent, and there is no optimistic update — on failure the select snaps back to the stored value, so the UI never shows a status that didn't persist. The in-flight book and the error are both tracked by book id, not booleans, because the permanently-mounted drawer only swaps its `book` prop and a late rejection would otherwise be reported against whichever book is on screen. Feature 02 had put display labels in `StatusBadge`'s `STATUS_STYLES` for this dropdown to reuse; the labels and status order are now in `src/lib/book-status.ts`, while the pill tints stayed in `StatusBadge` as its only consumer. Two additions the design doesn't cover: disabled styling while a PATCH is in flight, and the error message the spec requires.
+
+**Fixes** — The select was first built as a tinted pill extrapolated from `StatusBadge`, because the claude-design MCP returned a consent error on every read and the work continued anyway. Feature 03 had already established the design file as the strict source of truth, so this was the same mistake a second time. Once `/design consent` was granted the design was read and the control rebuilt from it — every dimension of the guess was wrong: the design specifies a full-width white box with a 1px border, 8px radius, 14px ink text and the platform's own select chrome, deliberately *not* the table's pill, with options ordered Want to Read → Currently Reading → Read rather than the reverse. An unreadable design is now treated as a blocker rather than something to work around.
