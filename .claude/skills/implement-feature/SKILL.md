@@ -37,7 +37,9 @@ You are implementing a single feature end-to-end, following the standing workflo
 
 10. **Update README** - Invoke `/update-readme` to refresh the progress table and append a build-log entry for this feature. It derives the entry from the commits since the README was last touched, so run it after the merge, not before.
 
-11. **Close out** - Update @context/current-feature.md: set Status to "Completed", clear the Goals/Notes content, and append a one-line summary of what was built to the History section.
+11. **Explain** - Invoke `/understand-feature` with the same spec path ($ARGUMENTS) to write the code-level explanation of what shipped to `context/understanding/`. It reads the merged git history, so it has to run after the merge — and after `/update-readme` rather than before, since the README derives its build-log entry from the commits since it was last touched, and a doc-only understanding commit landing inside that range is noise the next run has to filter back out. Ask before committing the note, then commit it with `/commit-msg`.
+
+12. **Close out** - Update @context/current-feature.md: set Status to "Completed", clear the Goals/Notes content, and append a one-line summary of what was built to the History section.
 
 ## Rules
 

@@ -5,7 +5,8 @@
       "mcp__playwright__browser_snapshot",
       "mcp__playwright__browser_select_option",
       "mcp__playwright__browser_evaluate",
-      "Bash(python -c \"import json; d=json.load\\(open\\('db.json'\\)\\); [print\\(b['id'], b['status'], b['title']\\) for b in d['books'] if b['id']=='5']\")"
+      "Bash(python -c \"import json; d=json.load\\(open\\('db.json'\\)\\); [print\\(b['id'], b['status'], b['title']\\) for b in d['books'] if b['id']=='5']\")",
+      "mcp__claude-design__list_files"
     ]
   }
 }

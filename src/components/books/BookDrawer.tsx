@@ -76,6 +76,9 @@ export default function BookDrawer({
 
     try {
       await onDelete(id);
+      // `onClose` and not `handleClose`: the id below is still set until the
+      // `finally` runs, so going through the guard above would refuse the very
+      // close this succeeded in earning.
       setConfirmingBookId(null);
       onClose();
     } catch (caught) {
