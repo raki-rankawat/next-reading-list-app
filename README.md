@@ -4,7 +4,7 @@ A personal book reading list tracker — track books you've read, are currently 
 
 ## Status
 
-**8 of 9 features complete.**
+**9 of 9 features complete.**
 
 | #   | Feature                                 | Status         |
 | --- | --------------------------------------- | -------------- |
@@ -16,7 +16,7 @@ A personal book reading list tracker — track books you've read, are currently 
 | 05  | Delete Flow (Drawer)                    | ✅ Done        |
 | 06  | Search View — Open Library Results      | ✅ Done        |
 | 07  | Add-to-List + "Already Added" Detection | ✅ Done        |
-| 08  | Polish — Loading/Empty/Error States     | ⬜ Not started |
+| 08  | Polish — Loading/Empty/Error States     | ✅ Done        |
 
 Specs for each live in [`context/features/`](context/features/).
 
@@ -40,8 +40,7 @@ flowchart TD
 
     classDef done fill:#22c55e,stroke:#15803d,color:#052e16
     classDef todo fill:#f1f5f9,stroke:#94a3b8,color:#334155
-    class F00,F01,F02,F03,F04,F05,F06,F07 done
-    class F08 todo
+    class F00,F01,F02,F03,F04,F05,F06,F07,F08 done
 ```
 
 ## Architecture
@@ -106,6 +105,7 @@ Stop json-server before running `db:reset`: a running server keeps serving its i
 ```
 src/app/           # App Router pages and layout
 src/components/    # UI components, grouped by feature area
+src/components/ui/ # Cross-cutting primitives — StatePanel, Spinner
 src/hooks/         # Client hooks — useBooks (json-server), useBookSearch (Open Library)
 src/lib/           # json-server.ts, open-library.ts — typed fetch helpers
 src/types/         # book.ts, open-library.ts — data models and API shapes
@@ -219,3 +219,15 @@ Amber steps need explicit approval before they run. Step 11 is optional and alwa
 **Decisions** — Matching is on `olKey` and never on title, which is the whole reason this is its own feature: a search for "The Hobbit" returns Tolkien's work alongside several unrelated ones, and title matching would mask them all as added. The added keys are a memoized `Set`, so the check is a lookup per card rather than a scan of the list. Three fields have no source in the search response: `type` is stored as `"Unknown"` rather than reaching for `subject`, which is a crowd-edited pile as likely to read "Accessible book, Protected DAISY" as a genre; `link` is the `olKey` resolved against `openlibrary.org`, the one URL Open Library gives for a work; and `score` is `0`, not the card's stars, which are the community rating rather than the user's own. `useBooks` takes a `NewBook` rather than a `SearchResult`, keeping the books hook clear of Open Library types, and `addBook` rejects on failure and appends the created book instead of refetching, following features 04 and 05. The in-flight card and its error are keyed by `olKey` for the same reason those features key by book id. Three additions the design has no notion of: the disabled `Adding…` state, a per-card failure message, and a notice when `GET /books` itself fails — without the list there is nothing to compare against, and every card would silently offer to add a book that may already be there.
 
 **Fixes** — A result Open Library has no cover for stores an empty `coverUrl`, which `next/image` treats as an error rather than as nothing to draw. The drawer was the only place still passing it through unguarded; it now renders the striped placeholder alone, as the search card already did.
+
+### 08 — Polish: Loading/Empty/Error States
+
+`2194a74` · merged in `4da212a` · `ad66537`
+
+**Shipped** — Two primitives in a new `src/components/ui/`. `StatePanel` is the single shell behind all seven "nothing to render" states — the table's loading, empty, and error, and the search view's idle, loading, no-results, and error — replacing the two ad-hoc sets the screens had grown separately. `Spinner` is the one loading indicator, in both waiting panels and in the add, delete, and status-save controls; the status save gained a visible `Saving…` row, the last in-flight action whose only feedback was a greyed-out control. Below 768px the table now simplifies to Name and Status per the responsive rules, with the author moved under the title, and the home header stacks instead of overflowing.
+
+**Decisions** — `role="alert"` and panel height are derived from the panel's variant rather than passed in, which is what stopped the home page's error from being the only silent one and the two screens from drifting on padding again. `Spinner` takes its colour from `currentColor`, so one component serves the light table, the dark grid, and filled buttons without the `tone` prop `StarScore` needed; it is always `aria-hidden`, since every placement pairs it with visible text, and carries `motion-reduce:animate-none`. A failed add is now tagged with the query it was raised during and shown only while that tag still matches the box — the same tag-and-derive shape `useBookSearch` uses, chosen over clearing on keystroke because it also covers a rejection landing *after* the query changed. The drawer's save and delete failures clear on close, which they previously survived, reappearing when the same book was reopened. The search grid waits on the reading list as well as the search: until `GET /books` returns, `addedKeys` is empty and every card offers to add a book that may already be in the list, which is the one way that screen can write a duplicate. The mobile table hides columns rather than forcing `display:block` onto table elements, which would strip the table semantics screen readers rely on; everything dropped is one tap away in the drawer, which goes full-screen at the same breakpoint. The design has no loading indicator, no error state, and no responsive treatment of any kind, so all of this is built against `project-overview.md`'s rules instead — its empty state is the one exception and was already shipped. The search view's list-error banner deliberately stays outside `StatePanel`: it warns alongside live results rather than standing in for them.
+
+**Fixes** — Post-merge review caught a comment claiming the relocated author sat outside the row's click target; it does not, since the row's handler fires on bubble, and the comment was corrected rather than the behaviour.
+
+**Notes** — Feature 07 left two items here. The stale add error is fixed above; focus dropping to the body when a card flips to `Already Added` was deliberately left open, being focus management rather than a loading or error state, and outside this spec's stated scope.
