@@ -1,4 +1,4 @@
-import type { Book } from "@/types/book";
+import type { Book, BookStatus } from "@/types/book";
 
 const API_BASE_URL = "http://localhost:3001";
 
@@ -19,4 +19,29 @@ export async function getBooks(): Promise<Book[]> {
   }
 
   return (await response.json()) as Book[];
+}
+
+// Returns the book as json-server stored it, so the caller updates its local
+// copy from the server's response rather than from what it hoped it wrote.
+export async function updateBookStatus(
+  id: string,
+  status: BookStatus,
+): Promise<Book> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}/books/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+  } catch {
+    throw new Error(UNREACHABLE_MESSAGE);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Couldn't save the new status (${response.status}).`);
+  }
+
+  return (await response.json()) as Book;
 }
