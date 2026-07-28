@@ -4,7 +4,7 @@ A personal book reading list tracker — track books you've read, are currently 
 
 ## Status
 
-**6 of 9 features complete.**
+**7 of 9 features complete.**
 
 | #   | Feature                                 | Status         |
 | --- | --------------------------------------- | -------------- |
@@ -14,7 +14,7 @@ A personal book reading list tracker — track books you've read, are currently 
 | 03  | Book Detail Drawer — View Only          | ✅ Done        |
 | 04  | Status Editing (Drawer)                 | ✅ Done        |
 | 05  | Delete Flow (Drawer)                    | ✅ Done        |
-| 06  | Search View — Open Library Results      | ⬜ Not started |
+| 06  | Search View — Open Library Results      | ✅ Done        |
 | 07  | Add-to-List + "Already Added" Detection | ⬜ Not started |
 | 08  | Polish — Loading/Empty/Error States     | ⬜ Not started |
 
@@ -40,8 +40,8 @@ flowchart TD
 
     classDef done fill:#22c55e,stroke:#15803d,color:#052e16
     classDef todo fill:#f1f5f9,stroke:#94a3b8,color:#334155
-    class F00,F01,F02,F03,F04,F05 done
-    class F06,F07,F08 todo
+    class F00,F01,F02,F03,F04,F05,F06 done
+    class F07,F08 todo
 ```
 
 ## Architecture
@@ -106,9 +106,9 @@ Stop json-server before running `db:reset`: a running server keeps serving its i
 ```
 src/app/           # App Router pages and layout
 src/components/    # UI components, grouped by feature area
-src/hooks/         # Client hooks — useBooks wraps the json-server fetch
-src/lib/           # json-server.ts — typed fetch helpers
-src/types/         # book.ts — Book and BookStatus
+src/hooks/         # Client hooks — useBooks (json-server), useBookSearch (Open Library)
+src/lib/           # json-server.ts, open-library.ts — typed fetch helpers
+src/types/         # book.ts, open-library.ts — data models and API shapes
 context/           # Project docs and numbered feature specs
 context/understanding/  # Post-merge code walkthroughs, one per feature
 scripts/           # reset-db.js — rebuilds db.json from the seed
@@ -127,20 +127,20 @@ flowchart LR
     A["1 · Document<br/>current-feature.md"] --> B["2 · Branch<br/>feature/*"]
     B --> C["3 · Implement<br/>one part at a time"]
     C --> D["4 · Test<br/>browser + npm run build"]
-    D -->|"issues found"| C
-    D --> E["5 · Commit<br/>/commit-msg"]
-    E --> F["6 · Merge"]
-    F --> G["7 · Delete branch"]
-    G --> H["8 · Review"]
-    H --> I["9 · README<br/>/update-readme"]
-    I --> J["10 · Explain<br/>/understand-feature"]
-    J --> K["11 · Close out"]
+    D -->|"5 · Iterate"| C
+    D --> E["6 · Commit<br/>/commit-msg"]
+    E --> F["7 · Merge"]
+    F --> G["8 · Delete branch"]
+    G --> H["9 · Review"]
+    H --> I["10 · README<br/>/update-readme"]
+    I --> J["11 · Explain<br/>/understand-feature"]
+    J --> K["12 · Close out"]
 
     classDef gate fill:#fef3c7,stroke:#f59e0b,color:#78350f
     class E,G,J gate
 ```
 
-Amber steps need explicit approval before they run. Step 10 is optional and always offered as a yes/no — the note in `context/understanding/` is a learning reference, not something the build or the next feature depends on.
+Amber steps need explicit approval before they run. Step 11 is optional and always offered as a yes/no — the note in `context/understanding/` is a learning reference, not something the build or the next feature depends on.
 
 ## Build Log
 
@@ -199,3 +199,13 @@ Amber steps need explicit approval before they run. Step 10 is optional and alwa
 **Shipped** — `deleteBook` in `src/lib/json-server.ts` (`DELETE /books/:id`), a `removeBook` mutation on `useBooks`, and the design's `Delete Book` button at the foot of the drawer. Clicking it raises a confirmation card centred over the panel, with the fields behind dimmed and blurred; confirming removes the book from `db.json` and the table and closes the drawer, cancelling leaves the data untouched. A failed delete reports inside the popup and keeps it open.
 
 **Decisions** — The confirmation is the only deviation from the design, which ends the drawer with a `Delete Book` button that deletes on a single click and has no confirm UI at all; the spec explicitly overrides that, so the idle button matches the design exactly and the confirm step was built. It started as an inline confirm swapped in place of the button and became a centred popup on review. The popup is a sibling of the panel rather than a child of it — the panel scrolls, and an overlay inside it would scroll away from the fields it is meant to be covering — and it shares the panel's geometry so the dimming stays inside the drawer and the table keeps its own backdrop. It introduces no new colour: the card border and the filled `Delete` reuse the two reds the design already names for the delete button. `removeBook` rejects on failure rather than storing the error in the hook, and drops the book from local state instead of refetching, both following feature 04's `updateStatus`. The armed confirm is keyed by book id like the state around it, the panel goes `inert` behind the popup so blurred fields leave the tab order, and closing disarms the confirm except while a delete is in flight, since leaving mid-request would remove the element its failure message renders in. That last guard is why the success path calls `onClose` directly instead of the guarded `handleClose`, which would otherwise refuse the close it just earned.
+
+### 06 — Search View: Open Library Results
+
+`c335351` · merged in `843b23b` · `b916280`
+
+**Shipped** — A `/search` route rendering the design's dark card grid: `searchBooks` in `src/lib/open-library.ts`, a debounced `useBookSearch` hook, `OpenLibraryDoc` / `SearchResult` types, and `SearchBooks` + `SearchResultCard`. Each card carries the cover, title, author, and star rating, with all four states handled — idle, loading, no results, and API error. Five dark `@theme` tokens were added for the palette, `StarScore` gained a 13px `size` and a `tone` for the darker empty star, and the design's `+ Add Book` button now sits in the home header and empty state.
+
+**Decisions** — The request adds `fields=` to the spec's bare `?q={query}`: `ratings_average` is absent from the default response, so there is no other way to render the design's stars. It also caps at 24 results, since the API pages at 100. Search fires on typing behind a 400ms debounce rather than on submit, because the design's input has no submit control and adding one would be a visible deviation. Only `author_name[0]` is shown — Open Library credits translators and narrators in that array, and the card gives the author one line. The hook stores a single record tagged with the query it answered and derives everything else from whether that tag still matches the box, so a stale result set can never be shown as this query's answer and the debounce window itself reads as loading. A card's stars are Open Library's community rating, display only; feature 07 still adds books at `score: 0`, since the list's score is the user's own. The four state panels are a deviation — the design has none at all — and mirror the home page's, translated into the dark palette. The `+ Add Book` entry point is beyond the spec but is the design's own button in its own position, without which `/search` is only reachable by typing the URL.
+
+**Fixes** — Lint's `react-hooks/set-state-in-effect` rejected the hook's clear-on-empty branch, which is what pushed it from stored state to derived state. A `py-16` written over the shared panel constant's `py-24` was not the override it looked like: conflicting Tailwind utilities resolve by stylesheet order, not class order, so each panel now sets its own. The input was `type="search"`, which has the browser draw a clear "×" the design's plain input does not have. Post-merge review caught an `aria-live` region wrapping the whole grid, which made every search read out all two dozen cards; it is now a visually-hidden summary with the grid outside it, and `buildCoverUrl` lost an export that had no consumer.
