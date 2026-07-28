@@ -37,9 +37,12 @@ You are implementing a single feature end-to-end, following the standing workflo
 
 10. **Update README** - Invoke `/update-readme` to refresh the progress table and append a build-log entry for this feature. It derives the entry from the commits since the README was last touched, so run it after the merge, not before.
 
-11. **Explain** - Stop and invite the user to run `/understand-feature $ARGUMENTS`, which writes the code-level explanation of what shipped to `context/understanding/`. Do not try to invoke it yourself — unlike `/commit-msg` and `/update-readme`, that skill sets `disable-model-invocation: true` and only runs when the user types it, deliberately: the notes are a personal learning reference and are long, so they get generated when the user actually wants to read one, not automatically on every feature. Point out that it is read-only and leaves the working tree untouched, then continue to close out whether or not they run it.
+11. **Explain** - Ask the user, as a plain yes/no question, whether they want the code-level explanation of what shipped written to `context/understanding/`. Writing a learning note is not part of building the feature — but ask every time, so the step is never silently skipped. Then:
 
-    The placement matters: it reads the merged git history, so it cannot run before the merge, and it belongs after `/update-readme` rather than before, since the README derives its build-log entry from the commits since it was last touched and a doc-only understanding commit landing inside that range is noise the next run has to filter back out.
+    - **No** — go straight to close out. Don't press.
+    - **Yes** — do not call the Skill tool for it. `understand-feature` sets `disable-model-invocation: true`, so that call is refused no matter who asked. Read `.claude/skills/understand-feature/SKILL.md` and carry out its steps directly instead, honouring its rules: it produces exactly one new file, `context/understanding/<same-number-and-name-as-the-spec>.md`, and must not touch source files, the spec, `context/current-feature.md`, or the checked-out branch. Ask before committing it.
+
+    Placement matters: it reads the merged git history, so it cannot run before the merge, and it belongs after `/update-readme` rather than before, since the README derives its build-log entry from the commits since it was last touched and a doc-only note landing inside that range is noise the next run has to filter back out.
 
 12. **Close out** - Update @context/current-feature.md: set Status to "Completed", clear the Goals/Notes content, and append a one-line summary of what was built to the History section.
 

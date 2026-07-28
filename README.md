@@ -140,7 +140,7 @@ flowchart LR
     class E,G,J gate
 ```
 
-Amber steps need explicit approval before they run. Step 10 goes further — `/understand-feature` is marked `disable-model-invocation`, so it only runs when you type it.
+Amber steps need explicit approval before they run. Step 10 is optional and always offered as a yes/no — the note in `context/understanding/` is a learning reference, not something the build or the next feature depends on.
 
 ## Build Log
 
