@@ -6,17 +6,17 @@ A personal book reading list tracker — track books you've read, are currently 
 
 **9 of 9 features complete.**
 
-| #   | Feature                                 | Status         |
-| --- | --------------------------------------- | -------------- |
-| 00  | Project Init & Boilerplate Cleanup      | ✅ Done        |
-| 01  | Project & json-server Setup             | ✅ Done        |
-| 02  | Home Page — Read-Only Table             | ✅ Done        |
-| 03  | Book Detail Drawer — View Only          | ✅ Done        |
-| 04  | Status Editing (Drawer)                 | ✅ Done        |
-| 05  | Delete Flow (Drawer)                    | ✅ Done        |
-| 06  | Search View — Open Library Results      | ✅ Done        |
-| 07  | Add-to-List + "Already Added" Detection | ✅ Done        |
-| 08  | Polish — Loading/Empty/Error States     | ✅ Done        |
+| #   | Feature                                 | Status  |
+| --- | --------------------------------------- | ------- |
+| 00  | Project Init & Boilerplate Cleanup      | ✅ Done |
+| 01  | Project & json-server Setup             | ✅ Done |
+| 02  | Home Page — Read-Only Table             | ✅ Done |
+| 03  | Book Detail Drawer — View Only          | ✅ Done |
+| 04  | Status Editing (Drawer)                 | ✅ Done |
+| 05  | Delete Flow (Drawer)                    | ✅ Done |
+| 06  | Search View — Open Library Results      | ✅ Done |
+| 07  | Add-to-List + "Already Added" Detection | ✅ Done |
+| 08  | Polish — Loading/Empty/Error States     | ✅ Done |
 
 Specs for each live in [`context/features/`](context/features/).
 
@@ -111,6 +111,7 @@ src/lib/           # json-server.ts, open-library.ts — typed fetch helpers
 src/types/         # book.ts, open-library.ts — data models and API shapes
 context/           # Project docs and numbered feature specs
 context/understanding/  # Post-merge code walkthroughs, one per feature
+                        # + learning-notes.md — concepts used across the codebase
 scripts/           # reset-db.js — rebuilds db.json from the seed
 .claude/skills/    # Workflow skills
 public/            # Static assets
@@ -141,6 +142,12 @@ flowchart LR
 ```
 
 Amber steps need explicit approval before they run. Step 11 is optional and always offered as a yes/no — the note in `context/understanding/` is a learning reference, not something the build or the next feature depends on.
+
+## New Here?
+
+Start with **[`context/understanding/learning-notes.md`](context/understanding/learning-notes.md)** — the concepts this codebase leans on, so the code reads as deliberate rather than arbitrary. Derived state, async race conditions, keying transient state by id, Tailwind's whole-string class scanning, live regions, and identity matching, each with the definition, where it lives, and why it's there.
+
+Then read one of the numbered feature walkthroughs in [`context/understanding/`](context/understanding/) alongside the code it describes.
 
 ## Build Log
 
@@ -180,7 +187,7 @@ Amber steps need explicit approval before they run. Step 11 is optional and alwa
 
 **Decisions** — The selected book id and the drawer's open state are tracked separately in `ReadingList`: closing clears only `isDrawerOpen`, so the panel still has content to render while sliding out, and re-deriving the book with `books.find` each render keeps it on live data for feature 04's status edit. The overlay stays mounted rather than mounting on open, since a panel mounted in its final position has nothing to animate from; `inert` keeps it out of the tab order while closed. Rows carry the click for pointers while the title cell is a real `<button>` for keyboard users, avoiding `role="button"` on a `<tr>`, and the Open Library link stops propagation so it doesn't also open the drawer. The design's status `<select>`, Delete button, and Notes / Added / Finished fields were left out — the first two belong to features 04 and 05, and the last three have no fields in the `Book` model.
 
-**Fixes** — The drawer was first built from feature 02's table styling instead of the design file and diverged structurally: a bordered header rather than the centred cover-and-title stack, the wrong field order, and a 440px panel instead of 400px. It was re-laid out against `Reading List.dc.html` before the commit. The design had looked unreachable because the claude-design MCP server was unregistered, and its import tools only load in the session *after* registration — but the `DesignSync` read methods reach the same project without them. `project-overview.md` had described the file as "a design reference... use it for layout, spacing, and visual details", wording that invited the approximation, and now states it is the strict source of truth to be read before building. Two React Compiler lint rules (`set-state-in-effect` and `refs`) rejected the first two attempts at retaining the closing panel's content, which is what pushed that state up into `ReadingList`.
+**Fixes** — The drawer was first built from feature 02's table styling instead of the design file and diverged structurally: a bordered header rather than the centred cover-and-title stack, the wrong field order, and a 440px panel instead of 400px. It was re-laid out against `Reading List.dc.html` before the commit. The design had looked unreachable because the claude-design MCP server was unregistered, and its import tools only load in the session _after_ registration — but the `DesignSync` read methods reach the same project without them. `project-overview.md` had described the file as "a design reference... use it for layout, spacing, and visual details", wording that invited the approximation, and now states it is the strict source of truth to be read before building. Two React Compiler lint rules (`set-state-in-effect` and `refs`) rejected the first two attempts at retaining the closing panel's content, which is what pushed that state up into `ReadingList`.
 
 ### 04 — Status Editing (Drawer)
 
@@ -190,7 +197,7 @@ Amber steps need explicit approval before they run. Step 11 is optional and alwa
 
 **Decisions** — `updateStatus` rejects on failure instead of storing the error in the hook: `useBooks`' existing `error` swaps the whole table for an error state, which is right for a failed load and wrong for a failed save, so the drawer catches it and reports it beside the select. Local state is updated from the book json-server returns rather than from what was sent, and there is no optimistic update — on failure the select snaps back to the stored value, so the UI never shows a status that didn't persist. The in-flight book and the error are both tracked by book id, not booleans, because the permanently-mounted drawer only swaps its `book` prop and a late rejection would otherwise be reported against whichever book is on screen. Feature 02 had put display labels in `StatusBadge`'s `STATUS_STYLES` for this dropdown to reuse; the labels and status order are now in `src/lib/book-status.ts`, while the pill tints stayed in `StatusBadge` as its only consumer. Two additions the design doesn't cover: disabled styling while a PATCH is in flight, and the error message the spec requires.
 
-**Fixes** — The select was first built as a tinted pill extrapolated from `StatusBadge`, because the claude-design MCP returned a consent error on every read and the work continued anyway. Feature 03 had already established the design file as the strict source of truth, so this was the same mistake a second time. Once `/design consent` was granted the design was read and the control rebuilt from it — every dimension of the guess was wrong: the design specifies a full-width white box with a 1px border, 8px radius, 14px ink text and the platform's own select chrome, deliberately *not* the table's pill, with options ordered Want to Read → Currently Reading → Read rather than the reverse. An unreadable design is now treated as a blocker rather than something to work around.
+**Fixes** — The select was first built as a tinted pill extrapolated from `StatusBadge`, because the claude-design MCP returned a consent error on every read and the work continued anyway. Feature 03 had already established the design file as the strict source of truth, so this was the same mistake a second time. Once `/design consent` was granted the design was read and the control rebuilt from it — every dimension of the guess was wrong: the design specifies a full-width white box with a 1px border, 8px radius, 14px ink text and the platform's own select chrome, deliberately _not_ the table's pill, with options ordered Want to Read → Currently Reading → Read rather than the reverse. An unreadable design is now treated as a blocker rather than something to work around.
 
 ### 05 — Delete Flow (Drawer)
 
@@ -226,7 +233,7 @@ Amber steps need explicit approval before they run. Step 11 is optional and alwa
 
 **Shipped** — Two primitives in a new `src/components/ui/`. `StatePanel` is the single shell behind all seven "nothing to render" states — the table's loading, empty, and error, and the search view's idle, loading, no-results, and error — replacing the two ad-hoc sets the screens had grown separately. `Spinner` is the one loading indicator, in both waiting panels and in the add, delete, and status-save controls; the status save gained a visible `Saving…` row, the last in-flight action whose only feedback was a greyed-out control. Below 768px the table now simplifies to Name and Status per the responsive rules, with the author moved under the title, and the home header stacks instead of overflowing.
 
-**Decisions** — `role="alert"` and panel height are derived from the panel's variant rather than passed in, which is what stopped the home page's error from being the only silent one and the two screens from drifting on padding again. `Spinner` takes its colour from `currentColor`, so one component serves the light table, the dark grid, and filled buttons without the `tone` prop `StarScore` needed; it is always `aria-hidden`, since every placement pairs it with visible text, and carries `motion-reduce:animate-none`. A failed add is now tagged with the query it was raised during and shown only while that tag still matches the box — the same tag-and-derive shape `useBookSearch` uses, chosen over clearing on keystroke because it also covers a rejection landing *after* the query changed. The drawer's save and delete failures clear on close, which they previously survived, reappearing when the same book was reopened. The search grid waits on the reading list as well as the search: until `GET /books` returns, `addedKeys` is empty and every card offers to add a book that may already be in the list, which is the one way that screen can write a duplicate. The mobile table hides columns rather than forcing `display:block` onto table elements, which would strip the table semantics screen readers rely on; everything dropped is one tap away in the drawer, which goes full-screen at the same breakpoint. The design has no loading indicator, no error state, and no responsive treatment of any kind, so all of this is built against `project-overview.md`'s rules instead — its empty state is the one exception and was already shipped. The search view's list-error banner deliberately stays outside `StatePanel`: it warns alongside live results rather than standing in for them.
+**Decisions** — `role="alert"` and panel height are derived from the panel's variant rather than passed in, which is what stopped the home page's error from being the only silent one and the two screens from drifting on padding again. `Spinner` takes its colour from `currentColor`, so one component serves the light table, the dark grid, and filled buttons without the `tone` prop `StarScore` needed; it is always `aria-hidden`, since every placement pairs it with visible text, and carries `motion-reduce:animate-none`. A failed add is now tagged with the query it was raised during and shown only while that tag still matches the box — the same tag-and-derive shape `useBookSearch` uses, chosen over clearing on keystroke because it also covers a rejection landing _after_ the query changed. The drawer's save and delete failures clear on close, which they previously survived, reappearing when the same book was reopened. The search grid waits on the reading list as well as the search: until `GET /books` returns, `addedKeys` is empty and every card offers to add a book that may already be in the list, which is the one way that screen can write a duplicate. The mobile table hides columns rather than forcing `display:block` onto table elements, which would strip the table semantics screen readers rely on; everything dropped is one tap away in the drawer, which goes full-screen at the same breakpoint. The design has no loading indicator, no error state, and no responsive treatment of any kind, so all of this is built against `project-overview.md`'s rules instead — its empty state is the one exception and was already shipped. The search view's list-error banner deliberately stays outside `StatePanel`: it warns alongside live results rather than standing in for them.
 
 **Fixes** — Post-merge review caught a comment claiming the relocated author sat outside the row's click target; it does not, since the row's handler fires on bubble, and the comment was corrected rather than the behaviour.
 
