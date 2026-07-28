@@ -1,4 +1,4 @@
-import type { Book, BookStatus } from "@/types/book";
+import type { Book, BookStatus, NewBook } from "@/types/book";
 
 const API_BASE_URL = "http://localhost:3001";
 
@@ -19,6 +19,28 @@ export async function getBooks(): Promise<Book[]> {
   }
 
   return (await response.json()) as Book[];
+}
+
+// Returns the created book, which is the only way to learn the id json-server
+// assigned it — the caller needs that to key the row it adds to the table.
+export async function createBook(book: NewBook): Promise<Book> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}/books`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(book),
+    });
+  } catch {
+    throw new Error(UNREACHABLE_MESSAGE);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Couldn't add this book (${response.status}).`);
+  }
+
+  return (await response.json()) as Book;
 }
 
 // Returns the book as json-server stored it, so the caller updates its local

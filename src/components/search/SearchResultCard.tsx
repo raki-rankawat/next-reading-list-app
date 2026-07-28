@@ -11,9 +11,19 @@ const COVER_PLACEHOLDER =
 
 interface SearchResultCardProps {
   result: SearchResult;
+  isAdded: boolean;
+  isAdding: boolean;
+  error: string | null;
+  onAdd: () => void;
 }
 
-export default function SearchResultCard({ result }: SearchResultCardProps) {
+export default function SearchResultCard({
+  result,
+  isAdded,
+  isAdding,
+  error,
+  onAdd,
+}: SearchResultCardProps) {
   return (
     <div className="bg-dark-card border-dark-border flex flex-col gap-3 rounded-[14px] border p-4 shadow-[0_4px_16px_rgba(0,0,0,0.25)]">
       <div
@@ -39,6 +49,38 @@ export default function SearchResultCard({ result }: SearchResultCardProps) {
         <p className="text-dark-muted text-[12.5px]">{result.author}</p>
       </div>
       <StarScore score={result.score} size="xs" tone="dark" />
+
+      {isAdded ? (
+        <span className="text-dark-muted self-start pt-0.5 text-[12.5px] font-medium">
+          Already Added
+        </span>
+      ) : (
+        // The button sits in a block wrapper rather than carrying the design's
+        // `align-self:flex-start` itself: a failure message is as wide as its
+        // text, and a shrink-to-fit column would push it past the card. Inside a
+        // full-width block the button still sizes to its own content.
+        <div>
+          <button
+            type="button"
+            onClick={onAdd}
+            disabled={isAdding}
+            // Named per card, since a grid of two dozen buttons all reading
+            // "Add" says nothing about which book is being added.
+            aria-label={`Add ${result.title} to your reading list`}
+            className="rounded-[7px] bg-stone-900 px-4 py-2 text-[12.5px] font-semibold text-white disabled:cursor-wait disabled:opacity-60"
+          >
+            {isAdding ? "Adding…" : "Add"}
+          </button>
+          {error && (
+            <p
+              role="alert"
+              className="mt-2 text-[12px] leading-[1.4] font-medium text-red-300"
+            >
+              {error}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

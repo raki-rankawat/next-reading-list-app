@@ -2,13 +2,19 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { deleteBook, getBooks, updateBookStatus } from "@/lib/json-server";
-import type { Book, BookStatus } from "@/types/book";
+import {
+  createBook,
+  deleteBook,
+  getBooks,
+  updateBookStatus,
+} from "@/lib/json-server";
+import type { Book, BookStatus, NewBook } from "@/types/book";
 
 interface UseBooksResult {
   books: Book[];
   isLoading: boolean;
   error: string | null;
+  addBook: (book: NewBook) => Promise<void>;
   updateStatus: (id: string, status: BookStatus) => Promise<void>;
   removeBook: (id: string) => Promise<void>;
 }
@@ -45,6 +51,14 @@ export function useBooks(): UseBooksResult {
     };
   }, []);
 
+  // Appends what the server created rather than refetching, following the two
+  // mutations below: the list is now exactly what is held here plus the book
+  // that came back, and it arrives carrying the id json-server assigned it.
+  const addBook = useCallback(async (book: NewBook) => {
+    const created = await createBook(book);
+    setBooks((current) => [...current, created]);
+  }, []);
+
   // Rejects on failure rather than storing the error here: `error` above is the
   // load failure that replaces the whole table, and a rejected save should not
   // do that. The caller reports it next to the control the user just used.
@@ -63,5 +77,5 @@ export function useBooks(): UseBooksResult {
     setBooks((current) => current.filter((book) => book.id !== id));
   }, []);
 
-  return { books, isLoading, error, updateStatus, removeBook };
+  return { books, isLoading, error, addBook, updateStatus, removeBook };
 }

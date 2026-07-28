@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import SearchResultCard from "@/components/search/SearchResultCard";
 import { useBookSearch } from "@/hooks/useBookSearch";
+import { useBooks } from "@/hooks/useBooks";
+import { toNewBook } from "@/lib/open-library";
+import type { SearchResult } from "@/types/open-library";
 
 // The design has no state panels — it renders a fixed result set and nothing
 // else — so these follow the home page's, translated into the dark palette:
@@ -16,11 +19,50 @@ const STATE_PANEL = "rounded-xl px-6 text-center";
 const STATE_TITLE = "text-dark-ink mb-2 text-base font-semibold";
 const STATE_BODY = "text-dark-muted text-sm";
 
+// An add that failed carries the result it was for, so a rejection landing after
+// the user has moved on to another card is reported on the card it belongs to —
+// the same reason the drawer keys its save and delete errors by book id.
+interface AddError {
+  olKey: string;
+  message: string;
+}
+
 export default function SearchBooks() {
   const [query, setQuery] = useState("");
   const { results, isSearching, error } = useBookSearch(query);
+  // The reading list is loaded here purely to answer one question per card:
+  // is this book already in it? The mutation is the other half — a card flips to
+  // "Already Added" because the hook now holds the book, not because the card
+  // remembers having added it.
+  const { books, error: listError, addBook } = useBooks();
+  const [addingKey, setAddingKey] = useState<string | null>(null);
+  const [addError, setAddError] = useState<AddError | null>(null);
 
   const trimmedQuery = query.trim();
+
+  // Matched on `olKey` and never on title: editions of the same work share a
+  // title across different works, and different works share one too.
+  const addedKeys = useMemo(
+    () => new Set(books.map((book) => book.olKey)),
+    [books],
+  );
+
+  async function handleAdd(result: SearchResult) {
+    setAddingKey(result.olKey);
+    setAddError(null);
+
+    try {
+      await addBook(toNewBook(result));
+    } catch (caught) {
+      setAddError({
+        olKey: result.olKey,
+        message:
+          caught instanceof Error ? caught.message : "Couldn't add this book.",
+      });
+    } finally {
+      setAddingKey((current) => (current === result.olKey ? null : current));
+    }
+  }
 
   // What the live region below announces, kept to a summary: the results are
   // read on request, not read out in full every time a keystroke changes them.
@@ -46,7 +88,14 @@ export default function SearchBooks() {
       // container and collapses to one on a phone without a breakpoint.
       <div className="grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-5">
         {results.map((result) => (
-          <SearchResultCard key={result.olKey} result={result} />
+          <SearchResultCard
+            key={result.olKey}
+            result={result}
+            isAdded={addedKeys.has(result.olKey)}
+            isAdding={addingKey === result.olKey}
+            error={addError?.olKey === result.olKey ? addError.message : null}
+            onAdd={() => handleAdd(result)}
+          />
         ))}
       </div>
     );
@@ -84,6 +133,18 @@ export default function SearchBooks() {
       <p aria-live="polite" className="sr-only">
         {status}
       </p>
+      {/* Without the reading list there is nothing to compare against, so every
+          card would offer to add a book that may already be there. Saying so is
+          the alternative to letting "Already Added" quietly stop being true. */}
+      {listError && (
+        <p
+          role="alert"
+          className="mb-5 rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-[13px] text-red-200"
+        >
+          Couldn&apos;t load your reading list, so books already in it aren&apos;t
+          marked. {listError}
+        </p>
+      )}
       {body}
     </>
   );
