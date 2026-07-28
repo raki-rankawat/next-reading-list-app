@@ -4,7 +4,7 @@ A personal book reading list tracker — track books you've read, are currently 
 
 ## Status
 
-**7 of 9 features complete.**
+**8 of 9 features complete.**
 
 | #   | Feature                                 | Status         |
 | --- | --------------------------------------- | -------------- |
@@ -15,7 +15,7 @@ A personal book reading list tracker — track books you've read, are currently 
 | 04  | Status Editing (Drawer)                 | ✅ Done        |
 | 05  | Delete Flow (Drawer)                    | ✅ Done        |
 | 06  | Search View — Open Library Results      | ✅ Done        |
-| 07  | Add-to-List + "Already Added" Detection | ⬜ Not started |
+| 07  | Add-to-List + "Already Added" Detection | ✅ Done        |
 | 08  | Polish — Loading/Empty/Error States     | ⬜ Not started |
 
 Specs for each live in [`context/features/`](context/features/).
@@ -40,8 +40,8 @@ flowchart TD
 
     classDef done fill:#22c55e,stroke:#15803d,color:#052e16
     classDef todo fill:#f1f5f9,stroke:#94a3b8,color:#334155
-    class F00,F01,F02,F03,F04,F05,F06 done
-    class F07,F08 todo
+    class F00,F01,F02,F03,F04,F05,F06,F07 done
+    class F08 todo
 ```
 
 ## Architecture
@@ -209,3 +209,13 @@ Amber steps need explicit approval before they run. Step 11 is optional and alwa
 **Decisions** — The request adds `fields=` to the spec's bare `?q={query}`: `ratings_average` is absent from the default response, so there is no other way to render the design's stars. It also caps at 24 results, since the API pages at 100. Search fires on typing behind a 400ms debounce rather than on submit, because the design's input has no submit control and adding one would be a visible deviation. Only `author_name[0]` is shown — Open Library credits translators and narrators in that array, and the card gives the author one line. The hook stores a single record tagged with the query it answered and derives everything else from whether that tag still matches the box, so a stale result set can never be shown as this query's answer and the debounce window itself reads as loading. A card's stars are Open Library's community rating, display only; feature 07 still adds books at `score: 0`, since the list's score is the user's own. The four state panels are a deviation — the design has none at all — and mirror the home page's, translated into the dark palette. The `+ Add Book` entry point is beyond the spec but is the design's own button in its own position, without which `/search` is only reachable by typing the URL.
 
 **Fixes** — Lint's `react-hooks/set-state-in-effect` rejected the hook's clear-on-empty branch, which is what pushed it from stored state to derived state. A `py-16` written over the shared panel constant's `py-24` was not the override it looked like: conflicting Tailwind utilities resolve by stylesheet order, not class order, so each panel now sets its own. The input was `type="search"`, which has the browser draw a clear "×" the design's plain input does not have. Post-merge review caught an `aria-live` region wrapping the whole grid, which made every search read out all two dozen cards; it is now a visually-hidden summary with the grid outside it, and `buildCoverUrl` lost an export that had no consumer.
+
+### 07 — Add-to-List + "Already Added" Detection
+
+`1deb87e` · merged in `55df4f2`
+
+**Shipped** — `createBook` in `src/lib/json-server.ts` (`POST /books`), a `NewBook` type, a `toNewBook` mapping in `src/lib/open-library.ts`, and an `addBook` mutation on `useBooks`. Each search card now ends in the design's `Add` button, or its muted `Already Added` label when the book is already in the list. Adding writes a full record to `db.json` at `status: "want_to_read"` and `score: 0`, and the card flips to `Already Added` the moment the POST resolves — no re-search, and the state survives one.
+
+**Decisions** — Matching is on `olKey` and never on title, which is the whole reason this is its own feature: a search for "The Hobbit" returns Tolkien's work alongside several unrelated ones, and title matching would mask them all as added. The added keys are a memoized `Set`, so the check is a lookup per card rather than a scan of the list. Three fields have no source in the search response: `type` is stored as `"Unknown"` rather than reaching for `subject`, which is a crowd-edited pile as likely to read "Accessible book, Protected DAISY" as a genre; `link` is the `olKey` resolved against `openlibrary.org`, the one URL Open Library gives for a work; and `score` is `0`, not the card's stars, which are the community rating rather than the user's own. `useBooks` takes a `NewBook` rather than a `SearchResult`, keeping the books hook clear of Open Library types, and `addBook` rejects on failure and appends the created book instead of refetching, following features 04 and 05. The in-flight card and its error are keyed by `olKey` for the same reason those features key by book id. Three additions the design has no notion of: the disabled `Adding…` state, a per-card failure message, and a notice when `GET /books` itself fails — without the list there is nothing to compare against, and every card would silently offer to add a book that may already be there.
+
+**Fixes** — A result Open Library has no cover for stores an empty `coverUrl`, which `next/image` treats as an error rather than as nothing to draw. The drawer was the only place still passing it through unguarded; it now renders the striped placeholder alone, as the search card already did.

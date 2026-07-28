@@ -40,8 +40,9 @@ export default function SearchBooks() {
 
   const trimmedQuery = query.trim();
 
-  // Matched on `olKey` and never on title: editions of the same work share a
-  // title across different works, and different works share one too.
+  // Matched on `olKey` and never on title: unrelated works carry the same title
+  // — a search for "The Hobbit" returns Tolkien's and several others — so the
+  // key is the only stable identity Open Library gives us for a work.
   const addedKeys = useMemo(
     () => new Set(books.map((book) => book.olKey)),
     [books],
