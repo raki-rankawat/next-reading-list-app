@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { getBooks, updateBookStatus } from "@/lib/json-server";
+import { deleteBook, getBooks, updateBookStatus } from "@/lib/json-server";
 import type { Book, BookStatus } from "@/types/book";
 
 interface UseBooksResult {
@@ -10,6 +10,7 @@ interface UseBooksResult {
   isLoading: boolean;
   error: string | null;
   updateStatus: (id: string, status: BookStatus) => Promise<void>;
+  removeBook: (id: string) => Promise<void>;
 }
 
 export function useBooks(): UseBooksResult {
@@ -54,5 +55,13 @@ export function useBooks(): UseBooksResult {
     );
   }, []);
 
-  return { books, isLoading, error, updateStatus };
+  // Rejects on failure for the same reason as `updateStatus`. Dropping the book
+  // from local state is the table's refresh: the server is now the shorter list,
+  // so refetching it would only cost a round trip to learn that.
+  const removeBook = useCallback(async (id: string) => {
+    await deleteBook(id);
+    setBooks((current) => current.filter((book) => book.id !== id));
+  }, []);
+
+  return { books, isLoading, error, updateStatus, removeBook };
 }
