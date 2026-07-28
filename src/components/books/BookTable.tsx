@@ -59,9 +59,11 @@ export default function BookTable({ books, onSelect }: BookTableProps) {
                   >
                     {book.title}
                   </button>
-                  {/* The author's mobile home, where its own column isn't. Left
-                      out of the tab order and the row's click target both — it
-                      is the same text the hidden cell holds, just relocated. */}
+                  {/* The author's mobile home, where its own column isn't —
+                      the same text the hidden cell holds, just relocated. Plain
+                      text rather than a second control: tapping it still opens
+                      the drawer, since the row above it is the click target,
+                      and the title button stays the one keyboard path in. */}
                   <p className="mt-0.5 text-[12.5px] text-stone-500 md:hidden">
                     {book.author}
                   </p>
