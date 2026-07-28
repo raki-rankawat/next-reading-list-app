@@ -7,7 +7,23 @@ interface BookTableProps {
   onSelect: (id: string) => void;
 }
 
-const COLUMNS = ["Name", "Type", "Status", "Score", "Author", "Link"];
+// Below `md` (768px) the table simplifies to Name and Status, per the
+// responsive rules in project-overview.md — the design itself has no mobile
+// treatment at all. Everything dropped here is still one tap away in the
+// drawer, which goes full-screen at exactly the same breakpoint, so the table
+// becomes an index and the drawer holds the detail. Author is the exception:
+// it moves under the title rather than leaving, since it is half of how a book
+// is recognised.
+const HIDDEN_ON_MOBILE = "hidden md:table-cell";
+
+const COLUMNS = [
+  { label: "Name" },
+  { label: "Type", className: HIDDEN_ON_MOBILE },
+  { label: "Status" },
+  { label: "Score", className: HIDDEN_ON_MOBILE },
+  { label: "Author", className: HIDDEN_ON_MOBILE },
+  { label: "Link", className: HIDDEN_ON_MOBILE },
+];
 
 export default function BookTable({ books, onSelect }: BookTableProps) {
   return (
@@ -18,10 +34,10 @@ export default function BookTable({ books, onSelect }: BookTableProps) {
             <tr className="border-b border-stone-200">
               {COLUMNS.map((column) => (
                 <th
-                  key={column}
-                  className="px-5 py-3.5 text-left text-[11.5px] font-semibold tracking-wider text-stone-500 uppercase"
+                  key={column.label}
+                  className={`px-5 py-3.5 text-left text-[11.5px] font-semibold tracking-wider text-stone-500 uppercase ${column.className ?? ""}`}
                 >
-                  {column}
+                  {column.label}
                 </th>
               ))}
             </tr>
@@ -33,7 +49,7 @@ export default function BookTable({ books, onSelect }: BookTableProps) {
                 onClick={() => onSelect(book.id)}
                 className="cursor-pointer border-b border-stone-200 last:border-b-0 hover:bg-stone-50"
               >
-                <td className="px-5 py-4 whitespace-nowrap">
+                <td className="px-5 py-4 md:whitespace-nowrap">
                   {/* The whole row is clickable for pointers; this button is
                       what carries that same action for keyboard users. */}
                   <button
@@ -43,20 +59,30 @@ export default function BookTable({ books, onSelect }: BookTableProps) {
                   >
                     {book.title}
                   </button>
+                  {/* The author's mobile home, where its own column isn't. Left
+                      out of the tab order and the row's click target both — it
+                      is the same text the hidden cell holds, just relocated. */}
+                  <p className="mt-0.5 text-[12.5px] text-stone-500 md:hidden">
+                    {book.author}
+                  </p>
                 </td>
-                <td className="px-5 py-4 text-[13.5px] whitespace-nowrap text-stone-500">
+                <td
+                  className={`px-5 py-4 text-[13.5px] whitespace-nowrap text-stone-500 ${HIDDEN_ON_MOBILE}`}
+                >
                   {book.type}
                 </td>
                 <td className="px-5 py-4">
                   <StatusBadge status={book.status} />
                 </td>
-                <td className="px-5 py-4">
+                <td className={`px-5 py-4 ${HIDDEN_ON_MOBILE}`}>
                   <StarScore score={book.score} />
                 </td>
-                <td className="px-5 py-4 text-[13.5px] whitespace-nowrap text-stone-500">
+                <td
+                  className={`px-5 py-4 text-[13.5px] whitespace-nowrap text-stone-500 ${HIDDEN_ON_MOBILE}`}
+                >
                   {book.author}
                 </td>
-                <td className="px-5 py-4">
+                <td className={`px-5 py-4 ${HIDDEN_ON_MOBILE}`}>
                   <a
                     href={book.link}
                     target="_blank"

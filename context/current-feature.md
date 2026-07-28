@@ -2,19 +2,52 @@
 
 <!-- Feature Name -->
 
+08 — Polish: Loading/Empty/Error States
+
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+Pass over every screen built in features 1-7 and make sure loading, empty, and
+error states are consistent and handled everywhere, rather than ad-hoc per
+feature. No new functionality — consistency and error handling only.
+
+### Requirements
+
+- Consistent loading indicator pattern (skeleton or spinner) used across table, drawer, and search
+- Empty state for a fresh install with zero books in the table
+- Clear error states if json-server is unreachable (table, drawer actions) and if Open Library is unreachable (search)
+- Quick pass on responsive behavior across all screens per `context/project-overview.md`'s responsive rules
+
+### Acceptance Criteria
+
+- Every fetch in the app (table load, drawer actions, search, add) has a defined loading, success, and error state — none silently do nothing on failure
+- Fresh `db.json` with an empty `books` array shows a clear "no books yet" message instead of a blank table
+- Manual check on mobile viewport width for table, drawer, and search grid
+
+### Parts
+
+1. **`StatePanel`** — one shell for every loading/empty/error panel, on both the light table and the dark search grid, replacing the two ad-hoc sets.
+2. **`Spinner`** — one loading indicator, used by both panels and by the three in-flight controls (status save, delete, add).
+3. **Error-state gaps** — a stale add error outliving its search, drawer errors surviving a close, and alert semantics across both surfaces.
+4. **Responsive pass** — stacked table rows below 768px per the responsive rules, small-viewport padding, and a manual check of the drawer and search grid.
+
 ## Notes
 
 <!-- Any extra notes -->
+
+`Reading List.dc.html` has no loading indicator, no error state, and no
+responsive treatment of any kind — its drawer is a fixed 400px panel at
+`max-width:92vw` and its table never restacks. Every state in this feature is
+therefore a deviation from the design, built against `project-overview.md`'s
+responsive rules instead. The design's empty state is the one exception: it
+specifies the dashed 96px/24px panel the home page already ships.
 
 ## History
 

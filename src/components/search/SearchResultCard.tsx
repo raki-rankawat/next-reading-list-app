@@ -1,6 +1,7 @@
 import Image from "next/image";
 
 import StarScore from "@/components/books/StarScore";
+import Spinner from "@/components/ui/Spinner";
 import type { SearchResult } from "@/types/open-library";
 
 // Sits behind the cover, so a result Open Library has no cover for keeps the
@@ -67,8 +68,9 @@ export default function SearchResultCard({
             // Named per card, since a grid of two dozen buttons all reading
             // "Add" says nothing about which book is being added.
             aria-label={`Add ${result.title} to your reading list`}
-            className="rounded-[7px] bg-stone-900 px-4 py-2 text-[12.5px] font-semibold text-white disabled:cursor-wait disabled:opacity-60"
+            className="inline-flex items-center gap-1.5 rounded-[7px] bg-stone-900 px-4 py-2 text-[12.5px] font-semibold text-white disabled:cursor-wait disabled:opacity-60"
           >
+            {isAdding && <Spinner />}
             {isAdding ? "Adding…" : "Add"}
           </button>
           {error && (

@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 
 import BookDrawer from "@/components/books/BookDrawer";
 import BookTable from "@/components/books/BookTable";
+import StatePanel from "@/components/ui/StatePanel";
 import { useBooks } from "@/hooks/useBooks";
 
 // The design's accent, which every shipped surface has translated as
@@ -30,18 +31,48 @@ export default function ReadingList() {
 
   let body: ReactNode;
   if (isLoading) {
-    body = <LoadingState />;
+    body = (
+      <StatePanel
+        tone="light"
+        variant="card"
+        busy
+        message="Loading your books…"
+      />
+    );
   } else if (error) {
-    body = <ErrorState message={error} />;
+    body = (
+      <StatePanel
+        tone="light"
+        variant="error"
+        title="Couldn't load your reading list"
+        message={error}
+      />
+    );
   } else if (books.length === 0) {
-    body = <EmptyState />;
+    // The one state the design does specify: its dashed 96px/24px panel, down
+    // to the copy.
+    body = (
+      <StatePanel
+        tone="light"
+        variant="dashed"
+        title="Your reading list is empty"
+        message="Search for a book to start tracking what you read."
+      >
+        <Link href="/search" className={ADD_BOOK_BUTTON}>
+          + Add Book
+        </Link>
+      </StatePanel>
+    );
   } else {
     body = <BookTable books={books} onSelect={openBook} />;
   }
 
   return (
     <>
-      <header className="mb-8 flex items-center justify-between">
+      {/* The design's single row from `sm` up. Below it the two stack, since
+          the 28px heading and the button together overrun a phone's width and
+          shrinking either one to fit would cost more than the wrap does. */}
+      <header className="mb-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
         <div>
           <h1 className="text-[28px] font-semibold tracking-tight text-stone-900">
             My Reading List
@@ -65,40 +96,5 @@ export default function ReadingList() {
         onDelete={removeBook}
       />
     </>
-  );
-}
-
-function LoadingState() {
-  return (
-    <div className="rounded-xl border border-stone-200 bg-white px-6 py-24 text-center shadow-sm">
-      <p className="text-sm text-stone-500">Loading your books…</p>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="rounded-xl border border-dashed border-stone-300 px-6 py-24 text-center">
-      <p className="mb-2 text-base font-semibold text-stone-900">
-        Your reading list is empty
-      </p>
-      <p className="mb-5 text-sm text-stone-500">
-        Search for a book to start tracking what you read.
-      </p>
-      <Link href="/search" className={ADD_BOOK_BUTTON}>
-        + Add Book
-      </Link>
-    </div>
-  );
-}
-
-function ErrorState({ message }: { message: string }) {
-  return (
-    <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-16 text-center">
-      <p className="mb-2 text-base font-semibold text-red-900">
-        Couldn&apos;t load your reading list
-      </p>
-      <p className="text-sm text-red-700">{message}</p>
-    </div>
   );
 }
