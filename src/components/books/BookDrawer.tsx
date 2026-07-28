@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import StarScore from "@/components/books/StarScore";
 import StatusSelect from "@/components/books/StatusSelect";
+import Spinner from "@/components/ui/Spinner";
 import type { Book, BookStatus } from "@/types/book";
 
 const FIELD_LABEL =
@@ -64,9 +65,16 @@ export default function BookDrawer({
   // should not present an already-armed delete. A delete already in flight is
   // the exception: leaving mid-request would disarm the confirm the failure
   // message renders in, so the request is allowed to land first.
+  //
+  // Both failures are dropped for the same reason the confirm is: they are
+  // keyed by book, so without this, reopening the book they were raised for
+  // would present a failure from a request the user has already walked away
+  // from as though it had just happened.
   function handleClose() {
     if (deletingBookId !== null) return;
     setConfirmingBookId(null);
+    setSaveError(null);
+    setDeleteError(null);
     onClose();
   }
 
@@ -85,7 +93,9 @@ export default function BookDrawer({
       setDeleteError({
         bookId: id,
         message:
-          caught instanceof Error ? caught.message : "Couldn't delete the book.",
+          caught instanceof Error
+            ? caught.message
+            : "Couldn't delete the book.",
       });
     } finally {
       setDeletingBookId((current) => (current === id ? null : current));
@@ -212,6 +222,18 @@ export default function BookDrawer({
                     disabled={savingBookId === book.id}
                     onChange={(status) => handleStatusChange(book.id, status)}
                   />
+                  {/* The save was the one in-flight action with nothing to see
+                      but a greyed-out control. It reports in the same slot the
+                      failure below uses, so the two can't both appear. */}
+                  {savingBookId === book.id && (
+                    <p
+                      role="status"
+                      className="mt-2 flex items-center gap-1.5 text-[12.5px] font-medium text-stone-500"
+                    >
+                      <Spinner />
+                      Saving…
+                    </p>
+                  )}
                   {saveError?.bookId === book.id && (
                     <p
                       role="alert"
@@ -287,8 +309,9 @@ export default function BookDrawer({
                 type="button"
                 onClick={() => handleDelete(book.id)}
                 disabled={deletingBookId === book.id}
-                className="flex-1 rounded-lg bg-[oklch(0.5_0.16_25)] p-[11px] text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-60"
+                className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[oklch(0.5_0.16_25)] p-[11px] text-sm font-semibold text-white disabled:cursor-wait disabled:opacity-60"
               >
+                {deletingBookId === book.id && <Spinner />}
                 {deletingBookId === book.id ? "Deleting…" : "Delete"}
               </button>
             </div>
