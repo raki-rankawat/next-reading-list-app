@@ -137,10 +137,10 @@ flowchart LR
     J --> K["11 · Close out"]
 
     classDef gate fill:#fef3c7,stroke:#f59e0b,color:#78350f
-    class E,G gate
+    class E,G,J gate
 ```
 
-Amber steps need explicit approval before they run.
+Amber steps need explicit approval before they run. Step 10 goes further — `/understand-feature` is marked `disable-model-invocation`, so it only runs when you type it.
 
 ## Build Log
 

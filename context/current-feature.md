@@ -2,48 +2,19 @@
 
 <!-- Feature Name -->
 
-05 — Delete Flow (Drawer)
-
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
 <!-- Goals & requirements -->
 
-Remove a book from the reading list, with a confirmation step before the delete
-actually happens.
-
-Requirements (from `context/features/05-delete-flow.md`):
-
-- Delete button in the drawer
-- Clicking it shows a confirmation step (modal or inline confirm) — the delete
-  must never fire on a single click
-- On confirmed delete, `DELETE http://localhost:3001/books/:id`
-- After a successful delete, close the drawer and refresh the table so the row
-  disappears
-
-Acceptance criteria:
-
-- Clicking delete without confirming does nothing to the data
-- Confirmed delete removes the book from `db.json` and from the table
-- Drawer closes automatically after a successful delete
-
 ## Notes
 
 <!-- Any extra notes -->
-
-Design deviation — the confirmation step. `Reading List.dc.html` ends the drawer
-with a single `Delete Book` button that deletes on one click
-(`onDelete = () => setState(books.filter(...))`); it has no confirm UI at all.
-The spec explicitly overrides this ("the delete must never fire on a single
-click"), so the confirmation is built rather than copied. The idle button itself
-matches the design exactly — full width as the last child of the field column,
-`margin-top:6px`, `padding:11px`, transparent background, `1px` border in
-`oklch(0.75 0.14 25)`, text in `oklch(0.5 0.16 25)`, `8px` radius, 14px/600.
 
 ## History
 
@@ -54,3 +25,4 @@ matches the design exactly — full width as the last child of the field column,
 - **02 — Home Page: Read-Only Table** — Added `Book`/`BookStatus` types, `getBooks` in `src/lib/json-server.ts`, a `useBooks` hook, `StatusBadge`/`StarScore` primitives, and `BookTable`; the home page renders the six seeded books with loading, empty, and error states. Status colours became six `@theme` tokens (base + darker `-ink` per status) because the design's tint-under-dark-text pill cannot hit readable contrast from a single hex. Data loads client-side so a real loading state exists and features 04/05 can mutate, leaving `page.tsx` the only server component. Merged in `8c791e1`.
 - **03 — Book Detail Drawer: View Only** — Added `BookDrawer`, opened by clicking a table row, showing cover, title, type, author, link, score, and a static status badge; closes via the bare `×` or the backdrop, full-screen below 768px and a 400px right-hand panel above. Selection and open state are separate pieces of state in `ReadingList`, so the panel keeps its content while sliding out and stays on live data for feature 04. Built first from feature 02's table styling and re-laid out against `Reading List.dc.html` before commit; `project-overview.md` now states the design file is the strict source of truth, read before building. Merged in `d834ba8`.
 - **04 — Status Editing (Drawer)** — Added `updateBookStatus` (`PATCH /books/:id`), an `updateStatus` mutation on `useBooks`, and `StatusSelect` in place of the drawer's static badge; the table's badge recolours from the server's response with no refetch, and a failed save reports under the control. `updateStatus` rejects rather than setting the hook's `error`, which would swap the whole table for an error state, and the in-flight book and error are keyed by book id so a late rejection isn't reported against whichever book the drawer has moved on to. Labels and the design's option order moved to `src/lib/book-status.ts`. Built first as a tinted pill because the design MCP was unconsented, then rebuilt from `Reading List.dc.html` once `/design consent` was granted — the design specifies a plain full-width white select, not a pill. Merged in `51a89a1`.
+- **05 — Delete Flow (Drawer)** — Added `deleteBook` (`DELETE /books/:id`), a `removeBook` mutation on `useBooks`, and the design's `Delete Book` button at the foot of the drawer, behind a confirmation card centred over the panel with the fields dimmed and blurred behind it; confirming clears the book from `db.json` and the table and closes the drawer, cancelling touches nothing. The confirm is the only deviation from the design, which deletes on a single click — it began as an inline swap and became a popup on review. The popup is a sibling of the panel rather than a child, since the panel scrolls and an overlay inside it would scroll away from what it covers, and it reuses the design's two delete reds so the flow adds no new colour. `removeBook` rejects rather than setting the hook's `error` and drops the book from local state instead of refetching, both following feature 04; the armed confirm is keyed by book id, the panel goes `inert` behind the popup, and closing disarms the confirm except mid-request, which is why the success path calls `onClose` rather than the guarded `handleClose`. Merged in `621bbcb`.
