@@ -1,10 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
 import BookDrawer from "@/components/books/BookDrawer";
 import BookTable from "@/components/books/BookTable";
 import { useBooks } from "@/hooks/useBooks";
+
+// The design's accent, which every shipped surface has translated as
+// `stone-900` — the table's links and the drawer's do the same.
+const ADD_BOOK_BUTTON =
+  "inline-flex items-center gap-1.5 rounded-lg bg-stone-900 px-5 py-2.5 text-sm font-semibold text-white";
 
 export default function ReadingList() {
   const { books, isLoading, error, updateStatus, removeBook } = useBooks();
@@ -35,15 +41,20 @@ export default function ReadingList() {
 
   return (
     <>
-      <header className="mb-8">
-        <h1 className="text-[28px] font-semibold tracking-tight text-stone-900">
-          My Reading List
-        </h1>
-        {!isLoading && !error && (
-          <p className="mt-1.5 text-sm text-stone-500">
-            {books.length} {books.length === 1 ? "book" : "books"}
-          </p>
-        )}
+      <header className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-[28px] font-semibold tracking-tight text-stone-900">
+            My Reading List
+          </h1>
+          {!isLoading && !error && (
+            <p className="mt-1.5 text-sm text-stone-500">
+              {books.length} {books.length === 1 ? "book" : "books"}
+            </p>
+          )}
+        </div>
+        <Link href="/search" className={ADD_BOOK_BUTTON}>
+          + Add Book
+        </Link>
       </header>
       {body}
       <BookDrawer
@@ -71,9 +82,12 @@ function EmptyState() {
       <p className="mb-2 text-base font-semibold text-stone-900">
         Your reading list is empty
       </p>
-      <p className="text-sm text-stone-500">
+      <p className="mb-5 text-sm text-stone-500">
         Search for a book to start tracking what you read.
       </p>
+      <Link href="/search" className={ADD_BOOK_BUTTON}>
+        + Add Book
+      </Link>
     </div>
   );
 }

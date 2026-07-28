@@ -10,4 +10,13 @@
   --color-status-currently-reading-ink: #7c2d12;
   --color-status-want-to-read: #3b82f6;
   --color-status-want-to-read-ink: #1e3a8a;
+
+  /* The search view's dark palette, taken verbatim from the design. It is a
+     cool near-neutral (hue 260) rather than a tint of the light theme's warm
+     stone, so none of the existing greys stand in for it. */
+  --color-dark-bg: oklch(0.19 0.012 260);
+  --color-dark-card: oklch(0.24 0.014 260);
+  --color-dark-border: oklch(0.32 0.014 260);
+  --color-dark-ink: oklch(0.96 0.003 260);
+  --color-dark-muted: oklch(0.65 0.01 260);
 }
