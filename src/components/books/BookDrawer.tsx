@@ -155,13 +155,19 @@ export default function BookDrawer({
               <span className="absolute inset-0 flex items-center justify-center font-mono text-[11px] text-stone-500">
                 cover
               </span>
-              <Image
-                src={book.coverUrl}
-                alt={`Cover of ${book.title}`}
-                fill
-                sizes="150px"
-                className="object-cover"
-              />
+              {/* Guarded, since a book added from search has no cover to store
+                  when Open Library has none for it, and `next/image` treats an
+                  empty `src` as an error rather than as nothing to draw. The
+                  search card already renders its cover this way. */}
+              {book.coverUrl && (
+                <Image
+                  src={book.coverUrl}
+                  alt={`Cover of ${book.title}`}
+                  fill
+                  sizes="150px"
+                  className="object-cover"
+                />
+              )}
             </div>
 
             <h2

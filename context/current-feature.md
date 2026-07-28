@@ -2,19 +2,57 @@
 
 <!-- Feature Name -->
 
+07 — Add-to-List + "Already Added" Detection
+
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+Let the user add a searched book to their reading list, and correctly show
+"Already Added" instead of an Add button for books already in the list.
+
+Requirements:
+
+- "Add" button on each search result card (from feature 6)
+- On click, `POST http://localhost:3001/books` with the mapped fields, default
+  `status: "want_to_read"`, `score: 0`, and `olKey` set from the Open Library
+  result's `key`
+- Before rendering each card's button, fetch current `GET /books` and compare
+  each search result's `key` against existing `olKey` values — match on `olKey`,
+  never on title (titles collide across editions)
+- If a match is found, render a disabled "Already Added" label instead of the
+  Add button
+- After a successful add, that card should immediately flip to "Already Added"
+  without requiring a fresh search
+
+Acceptance criteria:
+
+- Adding a new book creates a correct entry in `db.json` with all required fields
+- A book already in the list shows "Already Added" on search, not an Add button
+- Adding a book updates its card's state immediately, without needing to re-run
+  the search
+
 ## Notes
 
 <!-- Any extra notes -->
+
+Parts, in order:
+
+1. Data layer — `NewBook` type, `addBook` (`POST /books`) in `json-server.ts`,
+   and the Open Library result → new book mapping
+2. `useBooks` — an `addBook` mutation appending the created book to local state
+3. `SearchResultCard` — the design's Add button / "Already Added" label
+4. `SearchBooks` — books fetch, `olKey` matching, add handler, error states
+
+Design reference: `Reading List.dc.html` specifies both card endings — an `Add`
+button in the accent colour and, when added, a muted `Already Added` span, both
+`align-self:flex-start` under the stars.
 
 ## History
 

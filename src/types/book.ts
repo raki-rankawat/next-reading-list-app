@@ -11,3 +11,7 @@ export interface Book {
   link: string;
   olKey: string;
 }
+
+// A book on its way to json-server, which assigns the id — every other field is
+// already known at the point it is posted.
+export type NewBook = Omit<Book, "id">;

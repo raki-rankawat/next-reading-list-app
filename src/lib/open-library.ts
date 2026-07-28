@@ -1,3 +1,4 @@
+import type { NewBook } from "@/types/book";
 import type {
   OpenLibraryDoc,
   OpenLibrarySearchResponse,
@@ -5,6 +6,14 @@ import type {
 } from "@/types/open-library";
 
 const SEARCH_URL = "https://openlibrary.org/search.json";
+
+const WORK_URL_BASE = "https://openlibrary.org";
+
+// The search response carries no genre, and the fields that come closest —
+// `subject` — are a crowd-edited pile that starts "Fiction, Accessible book,
+// Protected DAISY" as often as not. The list's Type column is filled in by the
+// user, so a new book states plainly that it hasn't been.
+const UNKNOWN_TYPE = "Unknown";
 
 // `ratings_average` is not in the default response — asking for fields by name
 // is the only way to get the rating the card's stars show, and it trims the
@@ -48,6 +57,27 @@ export async function searchBooks(
   const data = (await response.json()) as OpenLibrarySearchResponse;
 
   return data.docs.map(toSearchResult);
+}
+
+// A search result as it enters the reading list. `olKey` is carried over
+// unchanged so the next search can match this book by it, and `link` is the same
+// key resolved to its page — the one URL Open Library gives us for a work.
+export function toNewBook(result: SearchResult): NewBook {
+  return {
+    title: result.title,
+    author: result.author,
+    type: UNKNOWN_TYPE,
+    status: "want_to_read",
+    // Not `result.score`: the card's stars are Open Library's community rating,
+    // while the score in the list is the user's own, which they haven't given
+    // this book yet.
+    score: 0,
+    // The Book schema has no null cover — an empty string is what the drawer's
+    // placeholder already stands in for.
+    coverUrl: result.coverUrl ?? "",
+    link: `${WORK_URL_BASE}${result.olKey}`,
+    olKey: result.olKey,
+  };
 }
 
 function toSearchResult(doc: OpenLibraryDoc): SearchResult {
