@@ -2,19 +2,48 @@
 
 <!-- Feature Name -->
 
+05 — Delete Flow (Drawer)
+
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+Remove a book from the reading list, with a confirmation step before the delete
+actually happens.
+
+Requirements (from `context/features/05-delete-flow.md`):
+
+- Delete button in the drawer
+- Clicking it shows a confirmation step (modal or inline confirm) — the delete
+  must never fire on a single click
+- On confirmed delete, `DELETE http://localhost:3001/books/:id`
+- After a successful delete, close the drawer and refresh the table so the row
+  disappears
+
+Acceptance criteria:
+
+- Clicking delete without confirming does nothing to the data
+- Confirmed delete removes the book from `db.json` and from the table
+- Drawer closes automatically after a successful delete
+
 ## Notes
 
 <!-- Any extra notes -->
+
+Design deviation — the confirmation step. `Reading List.dc.html` ends the drawer
+with a single `Delete Book` button that deletes on one click
+(`onDelete = () => setState(books.filter(...))`); it has no confirm UI at all.
+The spec explicitly overrides this ("the delete must never fire on a single
+click"), so the confirmation is built rather than copied. The idle button itself
+matches the design exactly — full width as the last child of the field column,
+`margin-top:6px`, `padding:11px`, transparent background, `1px` border in
+`oklch(0.75 0.14 25)`, text in `oklch(0.5 0.16 25)`, `8px` radius, 14px/600.
 
 ## History
 

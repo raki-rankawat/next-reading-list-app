@@ -45,3 +45,19 @@ export async function updateBookStatus(
 
   return (await response.json()) as Book;
 }
+
+// The response body is ignored — json-server echoes the deleted record, and
+// there is nothing left to update a local copy from.
+export async function deleteBook(id: string): Promise<void> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}/books/${id}`, { method: "DELETE" });
+  } catch {
+    throw new Error(UNREACHABLE_MESSAGE);
+  }
+
+  if (!response.ok) {
+    throw new Error(`Couldn't delete this book (${response.status}).`);
+  }
+}
