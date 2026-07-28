@@ -18,7 +18,7 @@ const RESULT_LIMIT = 24;
 const UNREACHABLE_MESSAGE =
   "Couldn't reach Open Library. Check your connection and try again.";
 
-export function buildCoverUrl(coverId: number): string {
+function buildCoverUrl(coverId: number): string {
   return `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
 }
 

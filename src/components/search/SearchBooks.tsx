@@ -22,16 +22,24 @@ export default function SearchBooks() {
 
   const trimmedQuery = query.trim();
 
+  // What the live region below announces, kept to a summary: the results are
+  // read on request, not read out in full every time a keystroke changes them.
+  // The error case stays empty because its panel is a `role="alert"` and would
+  // otherwise be announced twice.
+  let status = "";
   let body: ReactNode;
   if (trimmedQuery === "") {
     body = <IdleState />;
   } else if (isSearching) {
     body = <LoadingState />;
+    status = "Searching Open Library…";
   } else if (error) {
     body = <ErrorState message={error} />;
   } else if (results.length === 0) {
     body = <NoResultsState query={trimmedQuery} />;
+    status = "No books found.";
   } else {
+    status = `${results.length} ${results.length === 1 ? "result" : "results"} found.`;
     body = (
       // `auto-fill` rather than a fixed column count: the design's 230px floor
       // is what decides how many fit, which lands on 3-4 across the 1200px
@@ -69,9 +77,14 @@ export default function SearchBooks() {
         className="border-dark-border bg-dark-card text-dark-ink placeholder:text-dark-ink mb-8 w-full max-w-[420px] rounded-[10px] border px-4 py-3 text-sm outline-none placeholder:opacity-50"
       />
 
-      {/* The result area announces itself, since results arrive from typing in
-          the box above rather than from a submit a screen reader would follow. */}
-      <div aria-live="polite">{body}</div>
+      {/* Results arrive from typing rather than from a submit a screen reader
+          would follow, so the change has to be announced — but only as a count.
+          The grid sits outside the region, or every search would read out all
+          two dozen cards. */}
+      <p aria-live="polite" className="sr-only">
+        {status}
+      </p>
+      {body}
     </>
   );
 }
