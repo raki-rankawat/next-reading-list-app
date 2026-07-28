@@ -7,7 +7,7 @@ import BookTable from "@/components/books/BookTable";
 import { useBooks } from "@/hooks/useBooks";
 
 export default function ReadingList() {
-  const { books, isLoading, error } = useBooks();
+  const { books, isLoading, error, updateStatus } = useBooks();
   // Which book the drawer shows and whether it is open are separate: the
   // selection outlives the close so the panel still has content to render while
   // it slides out. Tracking the id rather than the book itself keeps the drawer
@@ -50,6 +50,7 @@ export default function ReadingList() {
         book={selectedBook}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
+        onStatusChange={updateStatus}
       />
     </>
   );

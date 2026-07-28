@@ -2,19 +2,61 @@
 
 <!-- Feature Name -->
 
+04 — Status Editing (Drawer)
+
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Completed
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+Make the status field in the drawer editable, persisting changes back to json-server and reflecting them in the table.
+
+### Requirements
+
+- Status field in the drawer becomes a dropdown/select with the three status options
+- On change, `PATCH http://localhost:3001/books/:id` with the new status
+- After a successful PATCH, the table's status badge for that book updates (either via refetch or local state update)
+- Handle a failed PATCH with a visible error — don't fail silently
+
+### Acceptance Criteria
+
+- Changing status in the drawer updates `db.json` (verify directly, not just visually)
+- Table reflects the new status/color without a full page reload
+- A simulated failed request (e.g. json-server stopped) shows an error state, not a blank/frozen UI
+
 ## Notes
 
 <!-- Any extra notes -->
+
+### Status control matches the design
+
+`StatusSelect` is the design's drawer `<select>` verbatim: full width, `9px 12px`
+padding, `8px` radius, a `1px` border in the shared border tone, 14px ink text
+on white, and the platform's own select chrome. Options run in the design's
+order — Want to Read, Currently Reading, Read.
+
+Notably it is **not** the table's coloured pill. The first build of this feature
+assumed it was, because the design file was unreadable at the time and the
+control was extrapolated from feature 03's badge; every dimension of that guess
+was wrong. The design was read once `/design consent` was granted and the
+control rebuilt from it.
+
+### Deviations
+
+- **Disabled styling on the select** (`disabled:cursor-wait disabled:opacity-60`)
+  while a PATCH is in flight. The design's select is synchronous and has no
+  notion of a save.
+- **Error message under the select.** Required by this feature's spec ("handle a
+  failed PATCH with a visible error"); the design has no error state.
+- The design's drawer also carries Added/Finished dates, a Notes textarea, and
+  the Delete Book button. Dates and notes are absent from the `Book` model in
+  `project-overview.md`; delete belongs to feature 05. Both were already out of
+  scope in feature 03 and stay so here.
 
 ## History
 

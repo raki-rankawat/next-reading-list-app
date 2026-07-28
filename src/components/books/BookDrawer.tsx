@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 
 import StarScore from "@/components/books/StarScore";
-import StatusBadge from "@/components/books/StatusBadge";
-import type { Book } from "@/types/book";
+import StatusSelect from "@/components/books/StatusSelect";
+import type { Book, BookStatus } from "@/types/book";
 
 const FIELD_LABEL =
   "text-[11px] font-semibold tracking-[.05em] text-stone-500 uppercase";
@@ -18,13 +19,49 @@ interface BookDrawerProps {
   book: Book | null;
   isOpen: boolean;
   onClose: () => void;
+  onStatusChange: (id: string, status: BookStatus) => Promise<void>;
+}
+
+// A save that fails carries the book it was for, so a rejection that lands
+// after the drawer has moved on isn't reported against whatever is on screen
+// now — the same reason the in-flight book is tracked by id rather than a flag.
+interface SaveError {
+  bookId: string;
+  message: string;
 }
 
 // The overlay stays mounted so the panel can transition in both directions —
 // mounting it on open would leave it already in place with nothing to animate
 // from. `inert` keeps the closed panel out of the tab order. `book` outlives
 // `isOpen` on close, which is what gives the closing panel something to render.
-export default function BookDrawer({ book, isOpen, onClose }: BookDrawerProps) {
+export default function BookDrawer({
+  book,
+  isOpen,
+  onClose,
+  onStatusChange,
+}: BookDrawerProps) {
+  const [savingBookId, setSavingBookId] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<SaveError | null>(null);
+
+  async function handleStatusChange(id: string, status: BookStatus) {
+    setSavingBookId(id);
+    setSaveError(null);
+
+    try {
+      await onStatusChange(id, status);
+    } catch (caught) {
+      setSaveError({
+        bookId: id,
+        message:
+          caught instanceof Error
+            ? caught.message
+            : "Couldn't save the new status.",
+      });
+    } finally {
+      setSavingBookId((current) => (current === id ? null : current));
+    }
+  }
+
   return (
     <div
       inert={!isOpen}
@@ -112,7 +149,19 @@ export default function BookDrawer({ book, isOpen, onClose }: BookDrawerProps) {
               <div>
                 <dt className={`mb-1.5 ${FIELD_LABEL}`}>Status</dt>
                 <dd>
-                  <StatusBadge status={book.status} />
+                  <StatusSelect
+                    status={book.status}
+                    disabled={savingBookId === book.id}
+                    onChange={(status) => handleStatusChange(book.id, status)}
+                  />
+                  {saveError?.bookId === book.id && (
+                    <p
+                      role="alert"
+                      className="mt-2 text-[12.5px] font-medium text-red-700"
+                    >
+                      {saveError.message}
+                    </p>
+                  )}
                 </dd>
               </div>
             </dl>
